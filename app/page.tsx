@@ -43,6 +43,15 @@ type Activity = {
   target: string;
 };
 
+type ProviderStatus = {
+  provider: string;
+  status: string;
+  displayName: string | null;
+  email: string | null;
+  lastSyncedAt: string | null;
+  errorMessage: string | null;
+};
+
 const modes: Mode[] = ["All", "Study", "Projects", "Career", "Personal", "Focus"];
 
 const entities: Entity[] = [
@@ -646,6 +655,9 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState("lumen-atlas");
   const [query, setQuery] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
+  const [sourceMode, setSourceMode] = useState<"demo" | "connected">("demo");
+  const [providers, setProviders] = useState<ProviderStatus[]>([]);
+  const [connectedAnswer, setConnectedAnswer] = useState<string | null>(null);
 
   const visibleEntities = useMemo(
     () => entities.filter((entity) => visibleInMode(entity, mode)),
@@ -692,6 +704,24 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/connections/status")
+      .then((response) => response.json())
+      .then((payload: { mode?: "demo" | "connected"; providers?: ProviderStatus[] }) => {
+        if (cancelled) return;
+        setSourceMode(payload.mode ?? "demo");
+        setProviders(payload.providers ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setSourceMode("demo");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!visibleEntities.some((entity) => entity.id === selectedId)) {
       setSelectedId(visibleEntities[0]?.id ?? "lumen-atlas");
     }
@@ -708,6 +738,27 @@ export default function Home() {
           <span>Ask the system</span>
           <kbd>Ctrl K</kbd>
         </button>
+      </section>
+
+      <section className="connection-ribbon" aria-label="Connected sources">
+        <div>
+          <p className="section-label">Source mode</p>
+          <strong>{sourceMode === "connected" ? "Connected Mode" : "Demo Mode"}</strong>
+        </div>
+        <div className="provider-strip">
+          {["google", "github"].map((provider) => {
+            const status = providers.find((item) => item.provider === provider);
+            const connected = ["syncing", "indexing", "connected", "needs_attention"].includes(
+              status?.status ?? "",
+            );
+            return (
+              <a className="provider-link" href={`/api/connect/${provider}`} key={provider}>
+                <span>{provider}</span>
+                <strong>{connected ? status?.status : status?.status ?? "not connected"}</strong>
+              </a>
+            );
+          })}
+        </div>
       </section>
 
       <section className="mode-strip" aria-label="Context modes">
@@ -896,7 +947,10 @@ export default function Home() {
               <input
                 autoFocus
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setConnectedAnswer(null);
+                }}
                 placeholder="Find everything related to the Northstar launch"
               />
               <button onClick={() => setCommandOpen(false)}>Close</button>
@@ -905,10 +959,32 @@ export default function Home() {
               <p className="section-label">Contextual answer</p>
               <strong>
                 {query
-                  ? `I found ${searchResults.length} connected objects and ranked them by your current ${mode} context.`
+                  ? connectedAnswer ??
+                    (sourceMode === "connected"
+                      ? "Searching connected sources..."
+                      : `I found ${searchResults.length} demo objects and ranked them by your current ${mode} context.`)
                   : "Try asking what changed, what needs attention, or which memory explains a recommendation."}
               </strong>
             </div>
+            {sourceMode === "connected" && query && (
+              <button
+                className="connected-search"
+                onClick={() => {
+                  fetch("/api/search", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ query }),
+                  })
+                    .then((response) => response.json())
+                    .then((payload: { answer?: string }) => {
+                      setConnectedAnswer(payload.answer ?? "No source-backed answer was returned.");
+                    })
+                    .catch(() => setConnectedAnswer("Connected search failed. Check source status."));
+                }}
+              >
+                Search connected sources
+              </button>
+            )}
             <div className="search-results">
               {searchResults.map((result) => (
                 <button
