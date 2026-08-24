@@ -1,0 +1,17 @@
+{
+  "name": "NOVI",
+  "short_name": "NOVI",
+  "description": "Your world, understood.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070d",
+  "theme_color": "#090b12",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
