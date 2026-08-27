@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Mode = "All" | "Study" | "Projects" | "Career" | "Personal" | "Focus";
+type ActiveView = "Canvas" | "Attention" | "Projects" | "People" | "Docs";
 type EntityType =
   | "project"
   | "person"
@@ -54,6 +55,7 @@ type ProviderStatus = {
 };
 
 const modes: Mode[] = ["All", "Study", "Projects", "Career", "Personal", "Focus"];
+const navItems: ActiveView[] = ["Canvas", "Attention", "Projects", "People", "Docs"];
 
 const demoEntities: Entity[] = [
   {
@@ -740,8 +742,20 @@ function sourceLabel(entity: Entity) {
   return entity.provider ?? entity.type;
 }
 
+function providerIsConnected(status?: string | null) {
+  return ["syncing", "indexing", "connected", "needs_attention"].includes(status ?? "");
+}
+
+function viewMatchesEntity(view: ActiveView, entity: Entity) {
+  if (view === "Projects") return entity.type === "project" || entity.type === "repository" || entity.mode.includes("Projects");
+  if (view === "People") return entity.type === "person" || entity.type === "email";
+  if (view === "Docs") return entity.type === "document" || entity.type === "note";
+  return true;
+}
+
 export default function Home() {
   const [mode, setMode] = useState<Mode>("Projects");
+  const [activeView, setActiveView] = useState<ActiveView>("Canvas");
   const [selectedId, setSelectedId] = useState("lumen-atlas");
   const [query, setQuery] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
@@ -803,6 +817,20 @@ export default function Home() {
         .slice(0, 5);
 
   const sourceRows = isConnected ? connectedEntities.slice(0, 6) : demoActivity;
+
+  const focusEntities = (activeView === "Attention" ? attentionItems : visibleEntities.filter((entity) => viewMatchesEntity(activeView, entity))).slice(
+    0,
+    activeView === "Canvas" ? visibleEntities.length : 24,
+  );
+
+  const viewTitle =
+    activeView === "Canvas"
+      ? "Life Canvas"
+      : activeView === "Attention"
+        ? "What deserves attention"
+        : activeView === "Docs"
+          ? "Documents and notes"
+          : activeView;
 
   const searchResults = useMemo(() => {
     const source = isConnected ? connectedEntities : demoAllRecords;
@@ -957,11 +985,24 @@ export default function Home() {
       <nav className="novi-rail" aria-label="Primary navigation">
         <NoviMark />
         <div className="rail-links">
-          {["Canvas", "Ask", "Attention", "Projects", "People", "Docs"].map((item) => (
+          <button
+            className="rail-link"
+            onClick={() => {
+              setCommandOpen(true);
+              setActiveView("Canvas");
+            }}
+          >
+            <span aria-hidden="true">A</span>
+            Ask
+          </button>
+          {navItems.map((item) => (
             <button
-              className={item === "Canvas" ? "rail-link active" : "rail-link"}
+              className={item === activeView ? "rail-link active" : "rail-link"}
               key={item}
-              onClick={() => (item === "Ask" ? setCommandOpen(true) : undefined)}
+              onClick={() => {
+                setActiveView(item);
+                if (item === "Projects") setMode("Projects");
+              }}
             >
               <span aria-hidden="true">{item.slice(0, 1)}</span>
               {item}
@@ -999,32 +1040,38 @@ export default function Home() {
           <div className="provider-strip">
             {["google", "github"].map((provider) => {
               const status = providers.find((item) => item.provider === provider);
-              const connected = ["syncing", "indexing", "connected", "needs_attention"].includes(
-                status?.status ?? "",
+              const providerStatus = status?.status ?? "not_connected";
+              const connected = providerIsConnected(status?.status);
+              const canSync = ["connected", "needs_attention"].includes(providerStatus);
+              const busy = ["syncing", "indexing", "authorizing", "connecting"].includes(providerStatus);
+              const label = connected ? (canSync ? "Sync now" : providerStatus) : providerStatus === "error" ? "Reconnect" : "Connect";
+              const content = (
+                <>
+                  <span>{provider}</span>
+                  <strong>{label}</strong>
+                  <small>{status?.errorMessage ?? status?.email ?? status?.displayName ?? providerStatus}</small>
+                </>
               );
+
+              if (connected) {
+                return (
+                  <button
+                    className="provider-link provider-button connected"
+                    key={provider}
+                    disabled={busy}
+                    onClick={provider === "google" ? runGoogleSync : runGithubSync}
+                  >
+                    {content}
+                  </button>
+                );
+              }
+
               return (
                 <a className={connected ? "provider-link connected" : "provider-link"} href={`/api/connect/${provider}`} key={provider}>
-                  <span>{provider}</span>
-                  <strong>{connected ? status?.status : status?.status ?? "not connected"}</strong>
+                  {content}
                 </a>
               );
             })}
-            {providers.some(
-              (item) => item.provider === "google" && ["syncing", "connected", "needs_attention"].includes(item.status),
-            ) && (
-              <button className="provider-link provider-button connected" onClick={runGoogleSync}>
-                <span>Google</span>
-                <strong>sync</strong>
-              </button>
-            )}
-            {providers.some(
-              (item) => item.provider === "github" && ["syncing", "connected", "needs_attention"].includes(item.status),
-            ) && (
-              <button className="provider-link provider-button connected" onClick={runGithubSync}>
-                <span>GitHub</span>
-                <strong>sync</strong>
-              </button>
-            )}
           </div>
           {syncNotice && <p className="sync-notice">{syncNotice}</p>}
         </section>
@@ -1042,6 +1089,8 @@ export default function Home() {
           ))}
         </section>
 
+        {activeView === "Canvas" ? (
+          <>
         <section className="world-grid" aria-label="Novi Life Canvas">
           <aside className="context-wing" aria-label="Current context">
             <p className="section-label">Current object</p>
@@ -1070,7 +1119,7 @@ export default function Home() {
               </div>
               <NoviMark stacked />
             </div>
-            <div className="life-canvas">
+            <div className={isConnected ? "life-canvas source-map" : "life-canvas"}>
             <svg className="relation-layer" viewBox="0 0 100 100" aria-hidden="true">
               {visibleRelations.map((relation) => {
                 const from = activeEntities.find((entity) => entity.id === relation.from);
@@ -1216,6 +1265,37 @@ export default function Home() {
             )}
           </div>
         </section>
+          </>
+        ) : (
+          <section className="focus-view" aria-label={`${viewTitle} view`}>
+            <div className="focus-heading">
+              <div>
+                <p className="section-label">{activeView}</p>
+                <h2>{viewTitle}</h2>
+              </div>
+              <button className="quiet-action compact" onClick={() => setCommandOpen(true)}>
+                Ask Novi
+              </button>
+            </div>
+            <div className="object-grid">
+              {focusEntities.length > 0 ? (
+                focusEntities.map((entity) => (
+                  <button
+                    className={entity.id === selected.id ? "object-card selected" : "object-card"}
+                    key={entity.id}
+                    onClick={() => setSelectedId(entity.id)}
+                  >
+                    <span>{sourceLabel(entity)}</span>
+                    <strong>{entity.label}</strong>
+                    <small>{entity.summary}</small>
+                  </button>
+                ))
+              ) : (
+                <p className="empty-note">Nothing in this view yet. Connect and sync sources to let Novi fill it in.</p>
+              )}
+            </div>
+          </section>
+        )}
       </section>
 
       {commandOpen && (
@@ -1243,7 +1323,7 @@ export default function Home() {
                 {query
                   ? connectedAnswer ??
                     (sourceMode === "connected"
-                      ? "Searching connected sources..."
+                      ? `Novi found ${searchResults.length} matching indexed objects below. Use connected search for a source-backed answer.`
                       : `Novi found ${searchResults.length} demo objects and ranked them through the ${mode} lens.`)
                   : "Ask what changed, what needs attention, who is waiting, or which source explains a decision."}
               </strong>
@@ -1252,16 +1332,23 @@ export default function Home() {
               <button
                 className="connected-search"
                 onClick={() => {
+                  setConnectedAnswer("Searching connected sources...");
                   fetch("/api/search", {
                     method: "POST",
                     headers: { "content-type": "application/json" },
                     body: JSON.stringify({ query }),
                   })
-                    .then((response) => response.json())
-                    .then((payload: { answer?: string }) => {
+                    .then(async (response) => {
+                      const payload = (await response.json().catch(() => ({}))) as { answer?: string; error?: string };
+                      if (!response.ok) {
+                        throw new Error(payload.error ?? "Connected search is unavailable right now.");
+                      }
+                      return payload;
+                    })
+                    .then((payload) => {
                       setConnectedAnswer(payload.answer ?? "No source-backed answer was returned.");
                     })
-                    .catch(() => setConnectedAnswer("Connected search failed. Check source status."));
+                    .catch((error: Error) => setConnectedAnswer(error.message));
                 }}
               >
                 Search connected sources

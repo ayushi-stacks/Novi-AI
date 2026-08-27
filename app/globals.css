@@ -206,6 +206,7 @@ p {
 .provider-link,
 .lens,
 .attention-item,
+.object-card,
 .connection-list button,
 .activity-row,
 .connected-search,
@@ -250,6 +251,7 @@ p {
 .provider-link:hover,
 .lens:hover,
 .attention-item:hover,
+.object-card:hover,
 .connection-list button:hover,
 .activity-row:hover,
 .search-results button:hover,
@@ -351,6 +353,12 @@ kbd {
   text-align: left;
 }
 
+.provider-button:disabled {
+  cursor: default;
+  opacity: 0.72;
+  transform: none;
+}
+
 .provider-link span,
 .attention-item span,
 .connection-list span,
@@ -366,6 +374,15 @@ kbd {
 .provider-link strong {
   overflow-wrap: anywhere;
   font-size: 0.86rem;
+}
+
+.provider-link small {
+  max-width: 18ch;
+  overflow: hidden;
+  color: var(--quiet);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sync-notice {
@@ -424,6 +441,12 @@ kbd {
 .context-wing {
   align-self: center;
   padding: 22px;
+}
+
+.context-wing h2,
+.context-wing p,
+.insight-block strong {
+  overflow-wrap: anywhere;
 }
 
 .context-wing p,
@@ -524,6 +547,24 @@ kbd {
   inset: 26%;
   border-style: dashed;
   opacity: 0.7;
+}
+
+.life-canvas.source-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  align-content: start;
+  gap: 10px;
+  min-height: 560px;
+  max-height: 680px;
+  overflow: auto;
+  padding: 16px;
+}
+
+.life-canvas.source-map::before,
+.life-canvas.source-map::after,
+.source-map .relation-layer,
+.source-map .relation-label {
+  display: none;
 }
 
 .relation-layer {
@@ -629,6 +670,59 @@ kbd {
     0 0 48px rgba(199, 178, 255, 0.78);
 }
 
+.source-map .node {
+  position: relative;
+  left: auto;
+  top: auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  width: 100%;
+  max-width: none;
+  min-height: 92px;
+  align-items: start;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.045);
+  transform: none !important;
+}
+
+.source-map .node.selected {
+  border-color: color-mix(in srgb, var(--purple) 70%, var(--line));
+  background: linear-gradient(135deg, rgba(147, 92, 255, 0.22), rgba(100, 234, 210, 0.07));
+}
+
+.source-map .node-mark {
+  width: 22px;
+  height: 22px;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--node-color) 32%, transparent);
+}
+
+.source-map .node.selected .node-mark {
+  width: 24px;
+  height: 24px;
+  box-shadow:
+    0 0 0 7px rgba(147, 92, 255, 0.14),
+    0 0 28px rgba(199, 178, 255, 0.5);
+}
+
+.source-map .node-label {
+  display: -webkit-box;
+  max-width: none;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.92rem;
+  line-height: 1.18;
+}
+
+.source-map .node-signal {
+  grid-column: 2;
+  display: block;
+  margin-top: 8px;
+}
+
 .intelligence-wing {
   display: grid;
   gap: 14px;
@@ -725,6 +819,75 @@ kbd {
 .memory-row p {
   margin: 6px 0 0;
   font-size: 0.92rem;
+}
+
+.focus-view {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.focus-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.quiet-action.compact {
+  width: auto;
+  min-width: 120px;
+  text-align: center;
+}
+
+.object-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.object-card {
+  display: grid;
+  gap: 8px;
+  min-height: 136px;
+  padding: 14px;
+  text-align: left;
+}
+
+.object-card.selected {
+  border-color: color-mix(in srgb, var(--purple) 70%, var(--line));
+  background: linear-gradient(135deg, rgba(147, 92, 255, 0.2), rgba(106, 180, 255, 0.08));
+}
+
+.object-card span {
+  color: var(--lavender);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.object-card strong {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--text);
+  line-height: 1.18;
+}
+
+.object-card small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .command-overlay {
