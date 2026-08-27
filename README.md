@@ -1,21 +1,54 @@
 # NOVI
 
-NOVI is a personal intelligence environment. The current interface stays centered on the Life Canvas, while the backend separates Demo Mode from Connected Mode.
+NOVI is an AI personal intelligence environment that turns connected work data into a source-backed Life Canvas. It combines Google, GitHub, search, sync status, attention surfaces, and contextual command flows in one responsive web app.
 
-## What Is Implemented
+Live deployment:
 
-- D1-backed tables for users, connected accounts, sync jobs, normalized entities, relationships, search index, and action history.
-- Google OAuth start and callback routes for Gmail, Calendar, and Drive scopes.
-- GitHub OAuth start and callback routes.
-- Server-side credential encryption using `CREDENTIAL_ENCRYPTION_KEY`.
-- Connection status, disconnect, source-backed search, action proposal, and GitHub webhook routes.
-- A subtle source ribbon in the existing UI that shows Demo Mode or Connected Mode and starts provider connection flows.
+https://life-canvas-os.jobsuit-0163.chatgpt.site
 
-The app does not claim a provider is connected unless OAuth succeeds and the account is persisted. If credentials are missing, the connection routes record an error instead of faking progress.
+## What It Does
+
+- Connects Google and GitHub accounts through OAuth.
+- Syncs Gmail, Calendar, Drive, repositories, issues, pull requests, and commits into normalized source entities.
+- Separates Demo Mode from Connected Mode so real connected data is never mixed with demo records.
+- Shows connected objects in a readable source map built for long file names and real-world data.
+- Provides working navigation for Canvas, Attention, Projects, People, and Docs views.
+- Offers an Ask Novi command surface with local matching and source-backed connected search.
+- Tracks provider state, sync state, errors, source metadata, and relationship data.
+- Uses D1 for users, connected accounts, sync jobs, entities, relationships, search index, and action history.
+
+## Tech Stack
+
+- Next.js / React
+- Vinext build output for Sites
+- Cloudflare Workers runtime
+- Cloudflare D1
+- Drizzle ORM
+- TypeScript
+- Tailwind CSS
+
+## Project Structure
+
+```text
+app/
+  api/                 API routes for OAuth, sync, search, actions, and webhooks
+  lib/server/          Server-side data, OAuth, Google sync, and GitHub sync logic
+  globals.css          NOVI visual system and responsive UI styles
+  layout.tsx           App metadata, manifest, and icons
+  page.tsx             Main NOVI experience
+db/
+  schema.ts            Database schema
+drizzle/
+  *.sql                Generated migrations
+public/
+  favicon.svg          NOVI app icon
+tests/
+  rendered-html.test.mjs
+```
 
 ## Environment Variables
 
-Copy `.env.example` and configure these values in local development and Sites production environment variables:
+Copy `.env.example` for local development and configure these values in Sites production environment variables:
 
 ```bash
 CREDENTIAL_ENCRYPTION_KEY="at-least-32-random-characters"
@@ -29,7 +62,23 @@ OPENAI_API_KEY=""
 
 Never commit real secret values.
 
-## Google Cloud Setup
+## Local Development
+
+```bash
+npm install
+npm run db:generate
+npm run dev
+```
+
+Useful checks:
+
+```bash
+npm run build
+npm run test
+npm run lint
+```
+
+## Google Setup
 
 1. Create or select a Google Cloud project.
 2. Enable Gmail API, Google Calendar API, and Google Drive API.
@@ -38,9 +87,9 @@ Never commit real secret values.
 5. Add redirect URLs:
    - Local: `http://localhost:5173/api/connect/google/callback`
    - Production: `https://life-canvas-os.jobsuit-0163.chatgpt.site/api/connect/google/callback`
-6. Add the client ID and secret to environment variables.
+6. Add the client ID and secret to your environment variables.
 
-Current requested scopes:
+Requested scopes:
 
 - `openid`
 - `email`
@@ -52,60 +101,43 @@ Current requested scopes:
 
 ## GitHub Setup
 
-For the current OAuth route:
+For OAuth:
 
 1. Create a GitHub OAuth App.
 2. Add callback URLs:
    - Local: `http://localhost:5173/api/connect/github/callback`
    - Production: `https://life-canvas-os.jobsuit-0163.chatgpt.site/api/connect/github/callback`
-3. Add the client ID and secret to environment variables.
+3. Add the client ID and secret to your environment variables.
 
 For webhook ingestion:
 
-1. Configure a webhook target:
+1. Configure the webhook target:
    - `https://life-canvas-os.jobsuit-0163.chatgpt.site/api/webhooks/github`
 2. Set the same secret in GitHub and `GITHUB_WEBHOOK_SECRET`.
 3. Subscribe to push, pull request, issue, issue comment, release, and review events as needed.
 
-The webhook route verifies `x-hub-signature-256` before accepting a payload.
+The webhook route verifies `x-hub-signature-256` before accepting payloads.
 
 ## Data Model
 
-Provider objects are not the core model. They are normalized into Life Canvas entities:
+Provider objects are normalized into NOVI entities:
 
-- Email and thread data become conversations, people, activities, tasks, and source-backed search records.
+- Emails and threads become conversations, people, activities, tasks, and source-backed search records.
 - Calendar events become meetings/events with attendees, timestamps, recurrence metadata, and relationships.
 - Drive files become documents with source IDs, links, metadata, and indexed content.
 - GitHub repositories, commits, issues, and pull requests become repositories, activities, tasks, work items, and people.
 
 Every imported object should retain provider, provider ID, source URL, timestamps, and sync metadata.
 
-## Sync Roadmap
+## Deployment
 
-The current implementation persists connection state and queues initial sync jobs. Production sync workers should:
+The site uses Sites with D1 binding `DB`, declared in `.openai/hosting.json`.
 
-1. Read queued jobs from `sync_jobs`.
-2. Refresh provider tokens when needed.
-3. Fetch incremental Gmail, Calendar, Drive, or GitHub data.
-4. Upsert normalized `entities`.
-5. Upsert `relationships` with confidence and evidence.
-6. Update `search_index`.
-7. Advance provider cursors/history IDs.
-8. Mark jobs complete or error with a clear message.
+Production environment values should be configured through Sites, not committed to source.
 
-Do not silently fall back to demo data in Connected Mode.
+## Safety Notes
 
-## Local Development
-
-```bash
-npm install
-npm run db:generate
-npm run dev
-npm run build
-```
-
-## Production
-
-The site uses Sites D1 binding `DB`, declared in `.openai/hosting.json`. Configure production environment variables through Sites, not by committing `.env` files.
-
-External actions must go through `action_history` as proposed actions first. Only execute external writes after explicit user confirmation.
+- Connected Mode should never silently fall back to demo data.
+- External actions must be recorded in `action_history` as proposed actions first.
+- External writes should only run after explicit user confirmation.
+- OAuth failures should surface as readable source status, not fake connection progress.
