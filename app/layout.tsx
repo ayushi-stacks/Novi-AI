@@ -1,29 +1,43 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "NOVI",
-  description:
-    "A beautiful AI layer over your actual digital life, built around context, memory, sources, and connected work.",
-  applicationName: "NOVI",
-  manifest: "/manifest.webmanifest",
-  openGraph: {
+const description =
+  "A beautiful AI layer over your actual digital life, built around context, memory, sources, and connected work.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const forwardedHost = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const safeHost = forwardedHost && /^[a-z0-9.-]+(?::\d+)?$/i.test(forwardedHost) ? forwardedHost : null;
+  const protocol = requestHeaders.get("x-forwarded-proto") === "http" ? "http" : "https";
+  const origin = safeHost ? `${protocol}://${safeHost}` : "https://life-canvas-os.jobsuit-0163.chatgpt.site";
+  const socialImage = `${origin}/og.png`;
+
+  return {
+    title: "NOVI",
+    description,
+    applicationName: "NOVI",
+    manifest: "/manifest.webmanifest",
+    openGraph: {
     title: "NOVI",
     description: "Your world, understood.",
     siteName: "NOVI",
     type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "NOVI",
-    description: "Your world, understood.",
-  },
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
-};
+      images: [{ url: socialImage, width: 1536, height: 1024, alt: "NOVI Life Canvas" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "NOVI",
+      description: "Your world, understood.",
+      images: [socialImage],
+    },
+    icons: {
+      icon: "/favicon.svg",
+      shortcut: "/favicon.svg",
+      apple: "/favicon.svg",
+    },
+  };
+}
 
 export default function RootLayout({
   children,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { queueSyncJob, requireCurrentUser, upsertConnection } from "../../../../lib/server/data";
+import { requireCurrentUser, upsertConnection } from "../../../../lib/server/data";
 import { encryptSecret, exchangeGoogleCode, parseOauthState } from "../../../../lib/server/oauth";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
-  if (error || !code || !parseOauthState(state, "google", user.userId)) {
+  if (error || !code || !(await parseOauthState(state, "google", user.userId))) {
     await upsertConnection({
       userId: user.userId,
       provider: "google",
@@ -31,14 +31,13 @@ export async function GET(request: Request) {
     await upsertConnection({
       userId: user.userId,
       provider: "google",
-      status: "syncing",
+      status: "connected",
       scopes: token.scope ?? null,
       encryptedAccessToken: await encryptSecret(token.access_token),
       encryptedRefreshToken: token.refresh_token ? await encryptSecret(token.refresh_token) : null,
       tokenExpiresAt: expiresAt,
     });
-    await queueSyncJob(user.userId, "google", "initial");
-    return NextResponse.redirect(new URL("/?connected=google", request.url));
+    return NextResponse.redirect(new URL("/?connected=google&sync=1", request.url));
   } catch (error) {
     await upsertConnection({
       userId: user.userId,

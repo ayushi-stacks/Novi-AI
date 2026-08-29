@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   try {
     await upsertConnection({ userId: user.userId, provider: "google", status: "authorizing" });
-    return NextResponse.redirect(googleAuthorizeUrl(request, user.userId));
+    return NextResponse.redirect(await googleAuthorizeUrl(request, user.userId));
   } catch (error) {
     await upsertConnection({
       userId: user.userId,

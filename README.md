@@ -2,6 +2,8 @@
 
 NOVI is an AI personal intelligence environment that turns connected work data into a source-backed Life Canvas. It combines Google, GitHub, search, sync status, attention surfaces, and contextual command flows in one responsive web app.
 
+![NOVI dashboard preview](./public/og.png)
+
 Live deployment:
 
 https://life-canvas-os.jobsuit-0163.chatgpt.site
@@ -9,12 +11,15 @@ https://life-canvas-os.jobsuit-0163.chatgpt.site
 ## What It Does
 
 - Connects Google and GitHub accounts through OAuth.
+- Supports sign-in with ChatGPT, account-aware data separation, sign-out, and a guest demo for portfolio visitors.
+- Guides first-time users through source setup and starts the first import automatically after OAuth returns.
 - Syncs Gmail, Calendar, Drive, repositories, issues, pull requests, and commits into normalized source entities.
 - Separates Demo Mode from Connected Mode so real connected data is never mixed with demo records.
-- Shows connected objects in a readable source map built for long file names and real-world data.
-- Provides working navigation for Canvas, Attention, Projects, People, and Docs views.
+- Shows one focused object and six readable satellites in a stable relationship canvas, even when source names are long.
+- Provides working Home, Canvas, Projects, Sources, People, Calendar, Tasks, Docs, Insights, Settings, and Help views.
 - Offers an Ask Novi command surface with local matching and source-backed connected search.
 - Tracks provider state, sync state, errors, source metadata, and relationship data.
+- Supports manual re-sync, disconnect, connector readiness states, and direct links back to original sources.
 - Uses D1 for users, connected accounts, sync jobs, entities, relationships, search index, and action history.
 
 ## Tech Stack
@@ -89,7 +94,7 @@ npm run lint
    - Production: `https://life-canvas-os.jobsuit-0163.chatgpt.site/api/connect/google/callback`
 6. Add the client ID and secret to your environment variables.
 
-Requested scopes:
+Requested Google scopes:
 
 - `openid`
 - `email`
@@ -108,6 +113,8 @@ For OAuth:
    - Local: `http://localhost:5173/api/connect/github/callback`
    - Production: `https://life-canvas-os.jobsuit-0163.chatgpt.site/api/connect/github/callback`
 3. Add the client ID and secret to your environment variables.
+
+NOVI requests `read:user` and `user:email`. It imports public repositories and public activity by default. This keeps the portfolio experience read-only and avoids GitHub's broad `repo` permission, which can also grant write access to private repositories.
 
 For webhook ingestion:
 
@@ -133,7 +140,7 @@ Every imported object should retain provider, provider ID, source URL, timestamp
 
 The site uses Sites with D1 binding `DB`, declared in `.openai/hosting.json`.
 
-Production environment values should be configured through Sites, not committed to source.
+Production environment values should be configured through Sites, not committed to source. The site should be published with public access for a portfolio so visitors can open the demo; signing in is only required when they connect their own data.
 
 ## Safety Notes
 

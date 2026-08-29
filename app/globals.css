@@ -72,6 +72,10 @@ button {
   color: inherit;
 }
 
+a {
+  color: inherit;
+}
+
 button:focus-visible,
 input:focus-visible,
 a:focus-visible {
@@ -115,6 +119,237 @@ p {
   min-height: 100vh;
 }
 
+.auth-screen,
+.setup-screen {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #05070d;
+  color: #f7f4ff;
+}
+
+.auth-brand,
+.setup-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 26px clamp(22px, 5vw, 72px);
+}
+
+.auth-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: min(760px, calc(100% - 44px));
+  min-height: calc(100vh - 112px);
+  align-content: center;
+  margin: 0 auto;
+  padding: 34px 0 12vh;
+  text-align: center;
+}
+
+.auth-content h1,
+.setup-content h1 {
+  margin: 0 auto;
+  font-size: clamp(2.65rem, 7vw, 5.8rem);
+  line-height: 0.98;
+}
+
+.auth-copy,
+.setup-copy {
+  max-width: 620px;
+  margin: 26px auto 0;
+  color: #b9b5c8;
+  font-size: 1.08rem;
+}
+
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 11px 16px;
+  color: #ffffff;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary-action {
+  border-color: rgba(191, 169, 255, 0.55);
+  background: #7f4be8;
+  box-shadow: 0 12px 36px rgba(104, 70, 216, 0.3);
+}
+
+.secondary-action {
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.primary-action:hover,
+.secondary-action:hover {
+  transform: translateY(-1px);
+  border-color: rgba(219, 207, 255, 0.72);
+}
+
+.primary-action:disabled,
+.secondary-action:disabled {
+  cursor: default;
+  opacity: 0.46;
+  transform: none;
+}
+
+.auth-footnote {
+  margin: 18px auto 0;
+  color: #7f7b90;
+  font-size: 0.8rem;
+}
+
+.auth-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0.66;
+  pointer-events: none;
+}
+
+.auth-canvas::before {
+  position: absolute;
+  width: min(72vw, 920px);
+  aspect-ratio: 1;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(198, 178, 255, 0.16);
+  border-radius: 50%;
+  content: "";
+  transform: translate(-50%, -48%);
+}
+
+.auth-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  aspect-ratio: 1;
+  border: 1px dashed rgba(106, 180, 255, 0.14);
+  border-radius: 50%;
+  transform: translate(-50%, -48%);
+}
+
+.orbit-one { width: min(50vw, 640px); }
+.orbit-two { width: min(32vw, 410px); }
+
+.auth-node {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #d7c9ff;
+  border-radius: 50%;
+  background: #7f4be8;
+  box-shadow: 0 0 0 9px rgba(147, 92, 255, 0.09), 0 0 28px rgba(147, 92, 255, 0.62);
+}
+
+.node-one { left: 18%; top: 31%; }
+.node-two { right: 17%; top: 38%; border-color: #64ead2; background: #1eaa95; }
+.node-three { left: 27%; bottom: 18%; border-color: #6ab4ff; background: #3a85cc; }
+.node-four { right: 26%; bottom: 22%; border-color: #f1ad63; background: #bc7134; }
+
+.auth-loading {
+  display: grid;
+  place-content: center;
+  gap: 20px;
+  color: #a8a5b8;
+  text-align: center;
+}
+
+.setup-screen {
+  overflow: auto;
+}
+
+.setup-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #b9b5c8;
+  font-size: 0.84rem;
+}
+
+.setup-account a {
+  color: #c8b5ff;
+}
+
+.setup-content {
+  position: relative;
+  z-index: 1;
+  width: min(1040px, calc(100% - 44px));
+  margin: 0 auto;
+  padding: clamp(52px, 8vw, 104px) 0 72px;
+  text-align: center;
+}
+
+.setup-content h1 {
+  max-width: 900px;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 40px;
+  text-align: left;
+}
+
+.setup-option {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 20px;
+  min-height: 330px;
+  border: 1px solid rgba(218, 208, 255, 0.16);
+  border-radius: var(--radius);
+  padding: 24px;
+  background: rgba(15, 18, 29, 0.86);
+}
+
+.setup-option.featured {
+  border-color: rgba(147, 92, 255, 0.54);
+  background: rgba(26, 21, 45, 0.9);
+}
+
+.setup-option h2 {
+  margin-bottom: 8px;
+  font-size: 1.75rem;
+}
+
+.setup-option p {
+  margin-bottom: 0;
+}
+
+.setup-option small {
+  color: #817c92;
+  line-height: 1.4;
+}
+
+.demo-link {
+  margin-top: 24px;
+  border: 0;
+  background: transparent;
+  color: #bca7f5;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .novi-rail {
   position: sticky;
   top: 0;
@@ -126,6 +361,82 @@ p {
   border-right: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(8, 10, 18, 0.86), rgba(8, 10, 18, 0.58));
   backdrop-filter: blur(26px);
+}
+
+.rail-account {
+  position: relative;
+  margin-top: auto;
+}
+
+.account-button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 9px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 9px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+}
+
+.account-button > span:first-child {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(147, 92, 255, 0.18);
+  color: var(--lavender);
+}
+
+.account-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.account-copy strong,
+.account-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-copy strong { font-size: 0.78rem; }
+.account-copy small { color: var(--quiet); font-size: 0.66rem; }
+
+.account-menu {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  bottom: calc(100% + 8px);
+  display: grid;
+  width: 230px;
+  gap: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 14px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+}
+
+.account-menu small { color: var(--muted); }
+
+.account-menu a {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  color: var(--lavender);
+  text-decoration: none;
 }
 
 .novi-lockup {
@@ -276,6 +587,31 @@ p {
   padding: clamp(18px, 2.4vw, 34px);
 }
 
+.demo-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  margin: calc(clamp(18px, 2.4vw, 34px) * -1) calc(clamp(18px, 2.4vw, 34px) * -1) 0;
+  padding: 10px clamp(18px, 2.4vw, 34px);
+  border-bottom: 1px solid rgba(147, 92, 255, 0.28);
+  background: rgba(147, 92, 255, 0.1);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.demo-banner span,
+.demo-banner a {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.demo-banner a {
+  color: var(--lavender);
+  font-weight: 650;
+}
+
 .novi-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -337,6 +673,87 @@ kbd {
   overflow-x: auto;
 }
 
+.provider-tile {
+  display: grid;
+  min-width: 248px;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 11px;
+  background: var(--surface-soft);
+}
+
+.provider-tile.connected {
+  border-color: color-mix(in srgb, var(--cyan) 38%, var(--line));
+}
+
+.provider-identity,
+.provider-actions {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+
+.provider-identity > svg {
+  flex: 0 0 auto;
+  color: var(--lavender);
+}
+
+.provider-identity > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.provider-identity strong { font-size: 0.8rem; }
+
+.provider-identity small {
+  overflow: hidden;
+  color: var(--quiet);
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-actions {
+  justify-content: flex-end;
+}
+
+.provider-actions button,
+.provider-actions a {
+  display: inline-flex;
+  min-height: 30px;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 0.7rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.provider-actions button:disabled {
+  cursor: default;
+  opacity: 0.54;
+}
+
+.provider-actions .icon-action {
+  width: 30px;
+  padding: 0;
+  color: var(--quiet);
+}
+
+.provider-error {
+  margin: 0;
+  color: var(--rose);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
 .provider-link {
   display: grid;
   min-width: 128px;
@@ -390,6 +807,19 @@ kbd {
   margin: -4px 0 0;
   color: var(--lavender);
   font-size: 0.9rem;
+}
+
+.source-action {
+  display: inline-flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 11px 12px;
+  color: var(--lavender);
+  font-size: 0.78rem;
+  text-decoration: none;
 }
 
 .lens-strip {
@@ -970,9 +1400,21 @@ kbd {
 }
 
 .connected-search {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
   margin: 18px 20px 0;
   background: linear-gradient(135deg, var(--purple), #6846d8);
   color: #ffffff;
+}
+
+.connected-search:disabled {
+  cursor: progress;
+  opacity: 0.74;
+}
+
+.spin {
+  animation: spin 900ms linear infinite;
 }
 
 .search-results {
@@ -1025,6 +1467,10 @@ kbd {
   }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 1180px) {
   .novi-app {
     grid-template-columns: 1fr;
@@ -1040,6 +1486,22 @@ kbd {
     padding: 12px 16px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .rail-account {
+    margin-top: 0;
+    margin-left: auto;
+  }
+
+  .account-button {
+    width: 150px;
+  }
+
+  .account-menu {
+    right: 0;
+    left: auto;
+    top: calc(100% + 8px);
+    bottom: auto;
   }
 
   .rail-links {
@@ -1071,6 +1533,42 @@ kbd {
 }
 
 @media (max-width: 760px) {
+  .auth-brand,
+  .setup-header {
+    padding: 20px 18px;
+  }
+
+  .auth-content {
+    width: min(100% - 34px, 620px);
+    min-height: calc(100vh - 86px);
+    padding-bottom: 8vh;
+  }
+
+  .auth-content h1,
+  .setup-content h1 {
+    font-size: clamp(2.35rem, 12vw, 4.2rem);
+  }
+
+  .auth-actions,
+  .auth-actions > * {
+    width: 100%;
+  }
+
+  .setup-account span { display: none; }
+
+  .setup-content {
+    width: min(100% - 28px, 620px);
+    padding-top: 38px;
+  }
+
+  .setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-option {
+    min-height: 300px;
+  }
+
   .novi-shell {
     padding: 14px;
     padding-bottom: 88px;
@@ -1086,6 +1584,10 @@ kbd {
   }
 
   .novi-rail .novi-lockup {
+    display: none;
+  }
+
+  .rail-account {
     display: none;
   }
 
@@ -1144,6 +1646,15 @@ kbd {
     justify-content: flex-start;
   }
 
+  .provider-tile {
+    min-width: min(280px, 82vw);
+  }
+
+  .demo-banner {
+    align-items: flex-start;
+    margin: -14px -14px 0;
+  }
+
   .lens-strip {
     display: flex;
     overflow-x: auto;
@@ -1190,5 +1701,938 @@ kbd {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+/* Reference dashboard: dense, full-bleed and deliberately limited to seven canvas nodes. */
+.reference-app {
+  --reference-bg: #03070c;
+  --reference-panel: rgba(8, 14, 22, 0.94);
+  --reference-line: rgba(145, 160, 184, 0.14);
+  min-height: 100svh;
+  background: var(--reference-bg);
+  color: #f5f7fb;
+  color-scheme: dark;
+}
+
+.reference-app .reference-brand {
+  display: flex;
+  align-items: center;
+  gap: 58px;
+}
+
+.reference-app .reference-brand .novi-lockup {
+  transform: scale(1.75);
+  transform-origin: left center;
+}
+
+.reference-app .reference-brand .novi-word,
+.reference-app .novi-rail > .novi-lockup .novi-word {
+  display: none;
+}
+
+.reference-app .reference-brand h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 3.65rem;
+  font-weight: 540;
+  line-height: 0.9;
+}
+
+.reference-app .reference-brand p {
+  margin: 10px 0 0;
+  color: #b49cf4;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.project-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
+  border-top: 1px solid var(--reference-line);
+  border-bottom: 1px solid var(--reference-line);
+}
+
+.project-stats span {
+  display: grid;
+  gap: 3px;
+  padding: 13px 8px;
+  color: #778295;
+  font-size: 0.64rem;
+  text-align: center;
+}
+
+.project-stats span + span {
+  border-left: 1px solid var(--reference-line);
+}
+
+.project-stats strong {
+  color: #f5f7fb;
+  font-size: 1.05rem;
+}
+
+.activity-sparkline {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.activity-sparkline > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #8490a3;
+  font-size: 0.68rem;
+}
+
+.activity-sparkline svg {
+  width: 100%;
+  height: 42px;
+  overflow: visible;
+}
+
+.activity-sparkline polyline {
+  fill: none;
+  stroke: #58d5a6;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 7px rgba(88, 213, 166, 0.42));
+}
+
+.canvas-spoke {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 31%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(178, 148, 255, 0.46), rgba(178, 148, 255, 0.03));
+  opacity: 0.55;
+  transform: rotate(var(--spoke-angle));
+  transform-origin: left center;
+}
+
+.node-mark svg {
+  width: 42%;
+  height: 42%;
+  stroke-width: 1.7;
+}
+
+.insight-bars {
+  display: grid;
+  gap: 12px;
+}
+
+.insight-bars button {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  overflow: hidden;
+  border: 0;
+  padding: 0 0 9px;
+  background: transparent;
+  color: #8994a6;
+  font-size: 0.68rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.insight-bars button strong {
+  color: #f4f6fb;
+}
+
+.insight-bars button::after,
+.insight-bars button i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  content: "";
+}
+
+.insight-bars button::after {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.insight-bars button i {
+  z-index: 1;
+  background: linear-gradient(90deg, #7c4dff, #48d7c5);
+  box-shadow: 0 0 10px rgba(124, 77, 255, 0.45);
+}
+
+.summary-grid,
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.settings-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summary-grid article,
+.settings-grid article {
+  display: grid;
+  min-height: 210px;
+  align-content: start;
+  gap: 10px;
+  border: 1px solid var(--reference-line);
+  border-radius: 6px;
+  padding: 20px;
+  background: #080f18;
+}
+
+.summary-grid article > svg,
+.settings-grid article > svg {
+  width: 22px;
+  color: #a87cff;
+}
+
+.summary-grid span,
+.settings-grid span {
+  color: #788498;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.summary-grid strong {
+  color: #ffffff;
+  font-size: 2.6rem;
+}
+
+.settings-grid strong {
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+.summary-grid p,
+.settings-grid p {
+  margin: 0;
+  color: #8994a6;
+  font-size: 0.82rem;
+}
+
+.settings-grid a,
+.settings-grid button {
+  justify-self: start;
+  margin-top: auto;
+  border: 1px solid rgba(168, 124, 255, 0.34);
+  border-radius: 6px;
+  padding: 8px 11px;
+  background: rgba(128, 76, 233, 0.13);
+  color: #c3aaff;
+  font-size: 0.76rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (min-width: 1181px) {
+  .reference-app {
+    grid-template-columns: 145px minmax(0, 1fr);
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .reference-app .novi-rail {
+    position: relative;
+    z-index: 12;
+    height: 100svh;
+    gap: 18px;
+    padding: 19px 8px 12px;
+    border-right: 1px solid #17202b;
+    background: #04080e;
+    backdrop-filter: none;
+  }
+
+  .reference-app .novi-rail > .novi-lockup {
+    align-self: center;
+    margin-bottom: 5px;
+  }
+
+  .reference-app .novi-rail > .novi-lockup .novi-mark {
+    width: 43px;
+    height: 34px;
+  }
+
+  .reference-app .rail-links {
+    gap: 1px;
+  }
+
+  .reference-app .rail-link {
+    gap: 12px;
+    min-height: 42px;
+    border: 0;
+    border-radius: 0;
+    padding: 9px 17px;
+    background: transparent;
+    color: #7d889a;
+    font-size: 0.73rem;
+  }
+
+  .reference-app .rail-link svg {
+    width: 16px;
+  }
+
+  .reference-app .rail-link.active {
+    background: linear-gradient(90deg, rgba(132, 74, 235, 0.16), rgba(132, 74, 235, 0));
+    color: #c7adff;
+    box-shadow: inset 2px 0 #9b63ff;
+  }
+
+  .reference-app .rail-link:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .reference-app .rail-account {
+    align-self: center;
+  }
+
+  .reference-app .account-button {
+    width: 42px;
+    justify-content: center;
+    border-color: #17202b;
+    background: #080e16;
+  }
+
+  .reference-app .account-copy {
+    display: none;
+  }
+
+  .reference-app .account-menu {
+    left: calc(100% + 10px);
+    bottom: 0;
+  }
+
+  .reference-app .novi-shell {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    width: 100%;
+    height: 100svh;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0;
+    background: #03070c;
+  }
+
+  .reference-app .demo-banner {
+    position: absolute;
+    z-index: 14;
+    top: 0;
+    left: 0;
+    right: 310px;
+    margin: 0;
+    padding: 7px 18px;
+    background: rgba(104, 63, 191, 0.2);
+  }
+
+  .reference-app .novi-header {
+    position: absolute;
+    z-index: 8;
+    top: 0;
+    left: 0;
+    right: 310px;
+    display: flex;
+    min-height: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 38px 42px 0;
+    pointer-events: none;
+  }
+
+  .reference-app.guest-preview .novi-header {
+    top: 34px;
+  }
+
+  .reference-app .novi-header > * {
+    pointer-events: auto;
+  }
+
+  .reference-app .command-button {
+    min-width: 0;
+    gap: 9px;
+    border-color: #202a37;
+    padding: 9px 11px;
+    background: rgba(8, 14, 22, 0.88);
+    color: #aab4c3;
+    font-size: 0.7rem;
+  }
+
+  .reference-app .command-button kbd {
+    padding: 1px 5px;
+    color: #7e8998;
+  }
+
+  .reference-app .lens-strip,
+  .reference-app .lower-system {
+    display: none;
+  }
+
+  .reference-app .world-grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+    min-height: 0;
+  }
+
+  .reference-app .canvas-stage {
+    grid-column: 1;
+    grid-row: 1;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .reference-app .canvas-header {
+    display: none;
+  }
+
+  .reference-app .life-canvas {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    background:
+      radial-gradient(circle at 50% 49%, rgba(109, 59, 198, 0.28), transparent 19%),
+      radial-gradient(circle at 27% 67%, rgba(27, 120, 155, 0.1), transparent 18%),
+      linear-gradient(rgba(116, 133, 155, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(116, 133, 155, 0.035) 1px, transparent 1px),
+      #03070c;
+    background-size: auto, auto, 44px 44px, 44px 44px, auto;
+    box-shadow: inset -1px 0 #17202b;
+  }
+
+  .reference-app .life-canvas::before {
+    inset: 20% 23%;
+    border-color: rgba(157, 116, 242, 0.16);
+  }
+
+  .reference-app .life-canvas::after {
+    inset: 32% 34%;
+    border-color: rgba(157, 116, 242, 0.18);
+  }
+
+  .reference-app .relation-layer line {
+    stroke: rgba(163, 129, 238, 0.28);
+    stroke-width: 0.12;
+  }
+
+  .reference-app .relation-label {
+    display: none;
+  }
+
+  .reference-app .node {
+    display: grid;
+    width: 156px;
+    max-width: 156px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 7px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+  }
+
+  .reference-app .node-mark {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    grid-row: auto;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--node-color) 58%, #ffffff);
+    border-radius: 8px;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--node-color) 56%, #182231), #081018 72%);
+    color: #ffffff;
+    box-shadow:
+      0 0 0 8px color-mix(in srgb, var(--node-color) 8%, transparent),
+      0 0 30px color-mix(in srgb, var(--node-color) 28%, transparent);
+  }
+
+  .reference-app .node-label {
+    display: -webkit-box;
+    max-width: 142px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: #f4f6fb;
+    font-size: 0.8rem;
+    line-height: 1.15;
+  }
+
+  .reference-app .node-signal {
+    max-width: 142px;
+    overflow: hidden;
+    color: #727f92;
+    font-size: 0.57rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reference-app .node.selected {
+    width: 210px;
+    max-width: 210px;
+  }
+
+  .reference-app .node.selected .node-mark {
+    width: 94px;
+    height: 94px;
+    border-color: rgba(215, 197, 255, 0.86);
+    background: linear-gradient(145deg, #3a1767, #0c1421 72%);
+    box-shadow:
+      0 0 0 14px rgba(132, 74, 235, 0.1),
+      0 0 58px rgba(132, 74, 235, 0.5);
+  }
+
+  .reference-app .node.selected .node-label {
+    max-width: 200px;
+    color: #ffffff;
+    font-size: 1.05rem;
+  }
+
+  .reference-app .context-wing {
+    position: relative;
+    z-index: 6;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    height: 366px;
+    margin: 8px;
+    overflow: hidden;
+    border-color: #17202b;
+    border-radius: 6px;
+    padding: 20px;
+    background: var(--reference-panel);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .reference-app .context-wing h2,
+  .reference-app .intelligence-wing h2 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+
+  .reference-app .context-wing > p:not(.section-label) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+
+  .reference-app .context-wing .quiet-action {
+    width: 100%;
+    padding: 9px;
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  .reference-app .context-wing .source-action {
+    display: block;
+    margin-top: 10px;
+    color: #9e7be8;
+    font-size: 0.66rem;
+    text-align: center;
+  }
+
+  .reference-app .intelligence-wing {
+    position: relative;
+    z-index: 6;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    gap: 8px;
+    margin: 382px 8px 8px;
+  }
+
+  .reference-app .attention-panel,
+  .reference-app .connection-panel {
+    border-color: #17202b;
+    border-radius: 6px;
+    padding: 16px;
+    background: var(--reference-panel);
+    box-shadow: none;
+  }
+
+  .reference-app .attention-list {
+    gap: 4px;
+  }
+
+  .reference-app .attention-item {
+    min-height: 0;
+    gap: 2px;
+    border-color: transparent;
+    border-radius: 4px;
+    padding: 7px 8px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .reference-app .attention-item:nth-child(n + 4) {
+    display: none;
+  }
+
+  .reference-app .attention-item span,
+  .reference-app .attention-item small {
+    font-size: 0.56rem;
+  }
+
+  .reference-app .attention-item strong {
+    font-size: 0.68rem;
+  }
+
+  .reference-app .source-bar {
+    position: absolute;
+    z-index: 9;
+    left: 18px;
+    bottom: 18px;
+    display: grid;
+    width: 292px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0;
+    border: 1px solid #17202b;
+    border-radius: 6px;
+    padding: 14px;
+    background: rgba(7, 13, 21, 0.96);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
+  }
+
+  .reference-app .source-bar > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .reference-app .source-bar .section-label {
+    margin: 0;
+  }
+
+  .reference-app .source-bar > div:first-child strong {
+    color: #707c8e;
+    font-size: 0.62rem;
+    font-weight: 500;
+  }
+
+  .reference-app .provider-strip {
+    display: grid;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  .reference-app .provider-tile {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    border-color: #1a2430;
+    border-radius: 5px;
+    padding: 9px 10px;
+    background: #0a111b;
+  }
+
+  .reference-app .provider-tile.connected {
+    border-color: rgba(71, 202, 165, 0.24);
+  }
+
+  .reference-app .provider-actions {
+    justify-content: flex-end;
+  }
+
+  .reference-app .provider-actions button,
+  .reference-app .provider-actions a {
+    min-height: 27px;
+    padding: 4px 7px;
+    font-size: 0.62rem;
+  }
+
+  .reference-app .provider-error,
+  .reference-app .sync-notice {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.6rem;
+  }
+
+  .reference-app .focus-view {
+    position: relative;
+    z-index: 4;
+    grid-row: 1;
+    height: calc(100svh - 170px);
+    margin: 150px 26px 20px;
+    overflow: auto;
+    border-color: #17202b;
+    background: rgba(7, 13, 21, 0.92);
+    box-shadow: none;
+  }
+
+  .reference-app .novi-shell:not([data-view="Home"]):not([data-view="Canvas"]):not([data-view="Sources"]) .source-bar {
+    display: none;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .novi-header {
+    position: relative;
+    right: auto;
+    height: 132px;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .source-bar {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    margin: 0 26px 14px;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .provider-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .focus-view {
+    height: auto;
+    min-height: 340px;
+    margin: 0 26px 20px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .reference-app {
+    display: block;
+    background: #03070c;
+  }
+
+  .reference-app .novi-rail {
+    background: rgba(4, 8, 14, 0.97);
+  }
+
+  .reference-app .rail-links {
+    scrollbar-width: thin;
+  }
+
+  .reference-app .novi-shell {
+    background: #03070c;
+  }
+
+  .reference-app .reference-header {
+    min-height: 150px;
+  }
+
+  .reference-app .reference-brand .novi-lockup {
+    transform: scale(1.25);
+  }
+
+  .reference-app .reference-brand h1 {
+    font-size: 2.8rem;
+  }
+
+  .reference-app .world-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .reference-app .canvas-stage {
+    order: 0;
+  }
+
+  .reference-app .life-canvas {
+    min-height: 680px;
+  }
+
+  .reference-app .context-wing,
+  .reference-app .intelligence-wing {
+    align-self: stretch;
+  }
+
+  .reference-app .intelligence-wing {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-app .source-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-app .provider-strip {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .reference-app .novi-shell {
+    padding-top: 0;
+  }
+
+  .reference-app .reference-header {
+    min-height: 132px;
+    padding: 18px 4px 14px;
+  }
+
+  .reference-app .reference-brand {
+    gap: 25px;
+  }
+
+  .reference-app .reference-brand .novi-lockup {
+    transform: scale(0.9);
+  }
+
+  .reference-app .reference-brand h1 {
+    font-size: 2rem;
+  }
+
+  .reference-app .reference-brand p {
+    margin-top: 6px;
+    font-size: 0.56rem;
+  }
+
+  .reference-app .command-button {
+    width: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .reference-app .command-button span,
+  .reference-app .command-button kbd {
+    display: none;
+  }
+
+  .reference-app .source-bar,
+  .reference-app .lens-strip,
+  .reference-app .canvas-header {
+    display: none;
+  }
+
+  .reference-app .world-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .reference-app .canvas-stage {
+    order: -1;
+  }
+
+  .reference-app .life-canvas {
+    min-height: 600px;
+  }
+
+  .reference-app .node {
+    display: grid;
+    width: 94px;
+    max-width: 94px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 5px;
+    text-align: center;
+    transform: translate(-50%, -50%);
+  }
+
+  .reference-app .node-mark {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    grid-row: auto;
+    place-items: center;
+    border-radius: 8px;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--node-color) 60%, #182231), #081018 72%);
+    color: #ffffff;
+  }
+
+  .reference-app .node.selected {
+    width: 118px;
+    max-width: 118px;
+  }
+
+  .reference-app .node.selected .node-mark {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #6f3fb4, #151128 72%);
+  }
+
+  .reference-app .node-label {
+    display: -webkit-box;
+    max-width: 88px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.62rem;
+    line-height: 1.12;
+  }
+
+  .reference-app .node.selected .node-label {
+    max-width: 112px;
+    font-size: 0.78rem;
+  }
+
+  .reference-app .context-wing,
+  .reference-app .intelligence-wing {
+    display: grid;
+  }
+
+  .reference-app .summary-grid,
+  .reference-app .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reference-app .focus-view {
+    margin-bottom: 0;
+  }
+
+  .reference-app .novi-rail {
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  .reference-app .rail-links {
+    width: 100%;
+    justify-content: stretch;
+    overflow: hidden;
+  }
+
+  .reference-app .rail-link {
+    min-width: 0;
+    flex: 1 1 20%;
+    padding-inline: 3px;
+  }
+
+  .reference-app .rail-link:nth-child(n + 5):nth-child(-n + 9),
+  .reference-app .rail-link:nth-child(11) {
+    display: none;
+  }
+
+  .reference-app .mobile-ask {
+    display: none;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .source-bar {
+    display: grid;
+    margin: 0 0 14px;
+    border: 1px solid #17202b;
+    border-radius: 6px;
+    padding: 14px;
+    background: #070d15;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .provider-strip {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .provider-tile {
+    width: 100%;
+    min-width: 0;
   }
 }

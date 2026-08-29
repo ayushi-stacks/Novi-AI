@@ -15,30 +15,45 @@ export const googleScopes = [
   "https://www.googleapis.com/auth/drive.readonly",
 ];
 
-export const githubScopes = ["repo", "read:user", "user:email"];
+// OAuth Apps do not offer a read-only private-repository scope. NOVI defaults
+// to public GitHub activity so a portfolio visitor never grants write access.
+export const githubScopes = ["read:user", "user:email"];
 
 export function originFromRequest(request: Request) {
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
 
-export function oauthState(userId: string, provider: Provider) {
-  const state = btoa(JSON.stringify({ nonce: createId("state"), userId, provider, at: nowIso() }));
-  return state.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+export async function oauthState(userId: string, provider: Provider) {
+  const payload = base64Url(
+    encoder.encode(JSON.stringify({ nonce: createId("state"), userId, provider, at: nowIso() })),
+  );
+  const signature = await signOauthPayload(payload);
+  return `${payload}.${signature}`;
 }
 
-export function parseOauthState(state: string | null, expectedProvider: Provider, userId: string) {
+export async function parseOauthState(state: string | null, expectedProvider: Provider, userId: string) {
   if (!state) return false;
   try {
-    const padded = state.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(state.length / 4) * 4, "=");
-    const parsed = JSON.parse(atob(padded)) as { provider?: string; userId?: string; at?: string };
-    return parsed.provider === expectedProvider && parsed.userId === userId && Boolean(parsed.at);
+    const [payload, signature] = state.split(".");
+    if (!payload || !signature) return false;
+    const expected = await signOauthPayload(payload);
+    if (!constantTimeEqual(signature, expected)) return false;
+
+    const parsed = JSON.parse(decoder.decode(fromBase64Url(payload))) as {
+      provider?: string;
+      userId?: string;
+      at?: string;
+    };
+    const issuedAt = parsed.at ? new Date(parsed.at).getTime() : Number.NaN;
+    const isFresh = Number.isFinite(issuedAt) && Date.now() - issuedAt < 10 * 60 * 1000;
+    return parsed.provider === expectedProvider && parsed.userId === userId && isFresh;
   } catch {
     return false;
   }
 }
 
-export function googleAuthorizeUrl(request: Request, userId: string) {
+export async function googleAuthorizeUrl(request: Request, userId: string) {
   const clientId = env.GOOGLE_CLIENT_ID;
   if (!clientId) throw new Error("GOOGLE_CLIENT_ID is not configured.");
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -49,18 +64,18 @@ export function googleAuthorizeUrl(request: Request, userId: string) {
   url.searchParams.set("prompt", "consent");
   url.searchParams.set("include_granted_scopes", "true");
   url.searchParams.set("scope", googleScopes.join(" "));
-  url.searchParams.set("state", oauthState(userId, "google"));
+  url.searchParams.set("state", await oauthState(userId, "google"));
   return url.toString();
 }
 
-export function githubAuthorizeUrl(request: Request, userId: string) {
+export async function githubAuthorizeUrl(request: Request, userId: string) {
   const clientId = env.GITHUB_CLIENT_ID;
   if (!clientId) throw new Error("GITHUB_CLIENT_ID is not configured.");
   const url = new URL("https://github.com/login/oauth/authorize");
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", `${originFromRequest(request)}/api/connect/github/callback`);
   url.searchParams.set("scope", githubScopes.join(" "));
-  url.searchParams.set("state", oauthState(userId, "github"));
+  url.searchParams.set("state", await oauthState(userId, "github"));
   return url.toString();
 }
 
@@ -130,8 +145,16 @@ export async function exchangeGithubCode(request: Request, code: string) {
       redirect_uri: `${originFromRequest(request)}/api/connect/github/callback`,
     }),
   });
-  if (!response.ok) throw new Error(`GitHub token exchange failed: ${response.status}`);
-  return response.json() as Promise<{ access_token: string; scope?: string }>;
+  const payload = (await response.json().catch(() => ({}))) as {
+    access_token?: string;
+    scope?: string;
+    error?: string;
+    error_description?: string;
+  };
+  if (!response.ok || !payload.access_token) {
+    throw new Error(payload.error_description ?? payload.error ?? "GitHub did not return an access token.");
+  }
+  return { access_token: payload.access_token, scope: payload.scope };
 }
 
 export async function encryptSecret(value: string) {
@@ -175,4 +198,38 @@ function fromBase64(value: string) {
     bytes[i] = binary.charCodeAt(i);
   }
   return bytes;
+}
+
+async function signOauthPayload(payload: string) {
+  const secret = env.CREDENTIAL_ENCRYPTION_KEY;
+  if (!secret || secret.length < 32) {
+    throw new Error("CREDENTIAL_ENCRYPTION_KEY must be configured with at least 32 characters.");
+  }
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+  return base64Url(new Uint8Array(signature));
+}
+
+function base64Url(value: Uint8Array) {
+  return base64(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+
+function fromBase64Url(value: string) {
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  return fromBase64(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "="));
+}
+
+function constantTimeEqual(left: string, right: string) {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return difference === 0;
 }

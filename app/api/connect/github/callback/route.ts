@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { queueSyncJob, requireCurrentUser, upsertConnection } from "../../../../lib/server/data";
+import { requireCurrentUser, upsertConnection } from "../../../../lib/server/data";
 import { encryptSecret, exchangeGithubCode, parseOauthState } from "../../../../lib/server/oauth";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
-  if (error || !code || !parseOauthState(state, "github", user.userId)) {
+  if (error || !code || !(await parseOauthState(state, "github", user.userId))) {
     await upsertConnection({
       userId: user.userId,
       provider: "github",
@@ -28,12 +28,11 @@ export async function GET(request: Request) {
     await upsertConnection({
       userId: user.userId,
       provider: "github",
-      status: "syncing",
+      status: "connected",
       scopes: token.scope ?? null,
       encryptedAccessToken: await encryptSecret(token.access_token),
     });
-    await queueSyncJob(user.userId, "github", "initial");
-    return NextResponse.redirect(new URL("/?connected=github", request.url));
+    return NextResponse.redirect(new URL("/?connected=github&sync=1", request.url));
   } catch (error) {
     await upsertConnection({
       userId: user.userId,

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   try {
     await upsertConnection({ userId: user.userId, provider: "github", status: "authorizing" });
-    return NextResponse.redirect(githubAuthorizeUrl(request, user.userId));
+    return NextResponse.redirect(await githubAuthorizeUrl(request, user.userId));
   } catch (error) {
     await upsertConnection({
       userId: user.userId,

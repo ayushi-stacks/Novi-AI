@@ -1,9 +1,45 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Activity as ActivityIcon,
+  BarChart3,
+  CalendarDays,
+  CheckSquare,
+  CircleHelp,
+  Cloud,
+  Code2,
+  Database,
+  FileText,
+  FolderKanban,
+  Github,
+  House,
+  LogIn,
+  LogOut,
+  Network,
+  Notebook,
+  RefreshCw,
+  Search,
+  Settings,
+  Sparkles,
+  User,
+  Users,
+  X,
+} from "lucide-react";
 
 type Mode = "All" | "Study" | "Projects" | "Career" | "Personal" | "Focus";
-type ActiveView = "Canvas" | "Attention" | "Projects" | "People" | "Docs";
+type ActiveView =
+  | "Home"
+  | "Canvas"
+  | "Projects"
+  | "Sources"
+  | "People"
+  | "Calendar"
+  | "Tasks"
+  | "Docs"
+  | "Insights"
+  | "Settings"
+  | "Help";
 type EntityType =
   | "project"
   | "person"
@@ -28,6 +64,7 @@ type Entity = {
   signal: string;
   detail: string;
   provider?: string | null;
+  sourceUrl?: string | null;
 };
 
 type Relation = {
@@ -54,8 +91,31 @@ type ProviderStatus = {
   errorMessage: string | null;
 };
 
+type AuthUser = {
+  userId: string;
+  displayName: string;
+  email: string;
+  fullName: string | null;
+};
+
+type ProviderName = "google" | "github";
+
+type ProviderReadiness = Record<ProviderName, boolean>;
+
 const modes: Mode[] = ["All", "Study", "Projects", "Career", "Personal", "Focus"];
-const navItems: ActiveView[] = ["Canvas", "Attention", "Projects", "People", "Docs"];
+const navItems = [
+  { label: "Home" as const, icon: House },
+  { label: "Canvas" as const, icon: Network },
+  { label: "Projects" as const, icon: FolderKanban },
+  { label: "Sources" as const, icon: Database },
+  { label: "People" as const, icon: Users },
+  { label: "Calendar" as const, icon: CalendarDays },
+  { label: "Tasks" as const, icon: CheckSquare },
+  { label: "Docs" as const, icon: Notebook },
+  { label: "Insights" as const, icon: BarChart3 },
+  { label: "Settings" as const, icon: Settings },
+  { label: "Help" as const, icon: CircleHelp },
+];
 
 const demoEntities: Entity[] = [
   {
@@ -614,15 +674,6 @@ const demoMemories = [
   },
 ];
 
-const demoModeBrief: Record<Mode, string> = {
-  All: "Three threads moved while you were away.",
-  Study: "Quiet Index is ready for retrieval practice.",
-  Projects: "Lumen Atlas has one decision blocking four pieces of work.",
-  Career: "Northstar and Lumen Atlas make the strongest evidence trail.",
-  Personal: "Your memories explain how the system adapts.",
-  Focus: "Tonight has a clean path: decide, brief, revise.",
-};
-
 const entityHue: Record<EntityType, string> = {
   project: "#a985ff",
   person: "#5ba7ff",
@@ -708,6 +759,7 @@ function mapLifeEntity(row: LifeApiEntity, index: number): Entity {
     signal: row.signal,
     detail: row.detail,
     provider: row.provider,
+    sourceUrl: row.sourceUrl,
   };
 }
 
@@ -746,16 +798,44 @@ function providerIsConnected(status?: string | null) {
   return ["syncing", "indexing", "connected", "needs_attention"].includes(status ?? "");
 }
 
+function providerStatusLabel(status: string) {
+  if (status === "not_connected" || status === "disconnected") return "Not connected";
+  if (status === "needs_attention") return "Needs attention";
+  return status.slice(0, 1).toUpperCase() + status.slice(1);
+}
+
 function viewMatchesEntity(view: ActiveView, entity: Entity) {
-  if (view === "Projects") return entity.type === "project" || entity.type === "repository" || entity.mode.includes("Projects");
+  if (view === "Projects") return entity.type === "project" || entity.type === "repository";
+  if (view === "Sources") return Boolean(entity.provider);
   if (view === "People") return entity.type === "person" || entity.type === "email";
+  if (view === "Calendar") return entity.type === "event";
+  if (view === "Tasks") return entity.type === "task";
   if (view === "Docs") return entity.type === "document" || entity.type === "note";
   return true;
 }
 
+function EntityGlyph({ type }: { type: EntityType }) {
+  if (type === "repository") return <Code2 aria-hidden="true" />;
+  if (type === "event") return <CalendarDays aria-hidden="true" />;
+  if (type === "task") return <CheckSquare aria-hidden="true" />;
+  if (type === "person" || type === "email") return <User aria-hidden="true" />;
+  if (type === "project") return <FolderKanban aria-hidden="true" />;
+  return <FileText aria-hidden="true" />;
+}
+
 export default function Home() {
+  const [viewer, setViewer] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [guestPreview, setGuestPreview] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [setupDismissed, setSetupDismissed] = useState(false);
+  const [readiness, setReadiness] = useState<ProviderReadiness>({ google: false, github: false });
+  const [connectionsLoaded, setConnectionsLoaded] = useState(false);
+  const [syncingProvider, setSyncingProvider] = useState<ProviderName | null>(null);
+  const autoSyncStarted = useRef(false);
+  const [searching, setSearching] = useState(false);
   const [mode, setMode] = useState<Mode>("Projects");
-  const [activeView, setActiveView] = useState<ActiveView>("Canvas");
+  const [activeView, setActiveView] = useState<ActiveView>("Home");
   const [selectedId, setSelectedId] = useState("lumen-atlas");
   const [query, setQuery] = useState("");
   const [commandOpen, setCommandOpen] = useState(false);
@@ -768,6 +848,8 @@ export default function Home() {
   const [lifeLoaded, setLifeLoaded] = useState(false);
 
   const isConnected = sourceMode === "connected";
+  const hasConnection = providers.some((provider) => providerIsConnected(provider.status));
+  const showOnboarding = Boolean(viewer && connectionsLoaded && !hasConnection && !setupDismissed);
 
   // The full, unfiltered set of real objects. Used for search, counts, and
   // as the fallback when the current mode/id selection points at nothing.
@@ -797,15 +879,6 @@ export default function Home() {
     (relation) => visibleIds.has(relation.from) && visibleIds.has(relation.to),
   );
 
-  const relatedEntities = visibleRelations
-    .filter((relation) => relation.from === selected.id || relation.to === selected.id)
-    .map((relation) => {
-      const otherId = relation.from === selected.id ? relation.to : relation.from;
-      const other = activeEntities.find((entity) => entity.id === otherId);
-      return other ? { relation, entity: other } : null;
-    })
-    .filter((item): item is { relation: Relation; entity: Entity } => item !== null);
-
   const attentionItems = isConnected
     ? connectedEntities.slice(0, 5)
     : visibleEntities
@@ -818,19 +891,33 @@ export default function Home() {
 
   const sourceRows = isConnected ? connectedEntities.slice(0, 6) : demoActivity;
 
-  const focusEntities = (activeView === "Attention" ? attentionItems : visibleEntities.filter((entity) => viewMatchesEntity(activeView, entity))).slice(
-    0,
-    activeView === "Canvas" ? visibleEntities.length : 24,
-  );
+  const focusEntities = visibleEntities.filter((entity) => viewMatchesEntity(activeView, entity)).slice(0, 24);
 
   const viewTitle =
-    activeView === "Canvas"
+    activeView === "Home" || activeView === "Canvas"
       ? "Life Canvas"
-      : activeView === "Attention"
-        ? "What deserves attention"
+      : activeView === "Sources"
+        ? "Connected sources"
         : activeView === "Docs"
           ? "Documents and notes"
           : activeView;
+
+  const canvasPositions = [
+    { x: 50, y: 50 },
+    { x: 50, y: 18 },
+    { x: 76, y: 34 },
+    { x: 76, y: 68 },
+    { x: 50, y: 83 },
+    { x: 24, y: 68 },
+    { x: 24, y: 34 },
+  ];
+  const canvasEntities = [selected, ...visibleEntities.filter((entity) => entity.id !== selected.id)]
+    .slice(0, canvasPositions.length)
+    .map((entity, index) => ({ ...entity, ...canvasPositions[index] }));
+  const canvasIds = new Set(canvasEntities.map((entity) => entity.id));
+  const canvasRelations = visibleRelations.filter(
+    (relation) => canvasIds.has(relation.from) && canvasIds.has(relation.to),
+  );
 
   const searchResults = useMemo(() => {
     const source = isConnected ? connectedEntities : demoAllRecords;
@@ -862,23 +949,52 @@ export default function Home() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const refreshConnections = useCallback(async () => {
+    try {
+      const response = await fetch("/api/connections/status");
+      const payload = (await response.json()) as {
+        mode?: "demo" | "connected";
+        providers?: ProviderStatus[];
+      };
+      setSourceMode(payload.mode ?? "demo");
+      setProviders(payload.providers ?? []);
+    } catch {
+      setSourceMode("demo");
+    } finally {
+      setConnectionsLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/connections/status")
-      .then((response) => response.json())
-      .then((payload: { mode?: "demo" | "connected"; providers?: ProviderStatus[] }) => {
+    Promise.all([
+      fetch("/api/me").then((response) => response.json()),
+      fetch("/api/connections/readiness").then((response) => response.json()),
+    ])
+      .then(([identity, connectorReadiness]: [
+        { authenticated?: boolean; user?: AuthUser | null },
+        { providers?: Partial<ProviderReadiness> },
+      ]) => {
         if (cancelled) return;
-        setSourceMode(payload.mode ?? "demo");
-        setProviders(payload.providers ?? []);
+        setViewer(identity.authenticated ? identity.user ?? null : null);
+        setReadiness({
+          google: Boolean(connectorReadiness.providers?.google),
+          github: Boolean(connectorReadiness.providers?.github),
+        });
+        setSetupDismissed(window.localStorage.getItem("novi-setup-dismissed") === "true");
       })
       .catch(() => {
-        if (!cancelled) setSourceMode("demo");
+        if (!cancelled) setViewer(null);
+      })
+      .finally(() => {
+        if (!cancelled) setAuthLoading(false);
       });
 
+    queueMicrotask(() => void refreshConnections());
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshConnections]);
 
   useEffect(() => {
     // connectedEntities/connectedRelations are only ever read when
@@ -926,107 +1042,233 @@ export default function Home() {
     // reflects newly imported objects without requiring a page reload.
   }, [isConnected, syncNotice]);
 
-  const runGoogleSync = () => {
-    setSyncNotice("Novi is syncing Google sources...");
-    fetch("/api/sync/google", { method: "POST" })
-      .then((response) => response.json())
-      .then(
-        (payload: {
-          counts?: { emails: number; events: number; documents: number };
+  const runProviderSync = useCallback(
+    async (provider: ProviderName) => {
+      setSyncingProvider(provider);
+      setSyncNotice(`Novi is importing your ${provider === "github" ? "GitHub" : "Google"} activity...`);
+      setProviders((current) =>
+        current.map((item) => (item.provider === provider ? { ...item, status: "syncing" } : item)),
+      );
+
+      try {
+        const response = await fetch(`/api/sync/${provider}`, { method: "POST" });
+        const payload = (await response.json().catch(() => ({}))) as {
+          counts?: Record<string, number>;
           partialErrors?: string[];
           error?: string;
-        }) => {
-          if (payload.error) {
-            setSyncNotice(payload.error);
-            return;
-          }
-          const counts = payload.counts ?? { emails: 0, events: 0, documents: 0 };
-          setSourceMode("connected");
-          const base = `Novi imported ${counts.emails} emails, ${counts.events} events, and ${counts.documents} Drive files.`;
-          setSyncNotice(
-            payload.partialErrors && payload.partialErrors.length > 0
-              ? `${base} Some sources need attention: ${payload.partialErrors.join(" | ")}`
-              : base,
-          );
-        },
-      )
-      .catch(() => setSyncNotice("Google sync failed. Try reconnecting Google."));
+        };
+        if (!response.ok || payload.error) {
+          throw new Error(payload.error ?? `${provider} sync failed.`);
+        }
+
+        const counts = payload.counts ?? {};
+        const imported = Object.values(counts).reduce((total, count) => total + count, 0);
+        setSourceMode("connected");
+        setSyncNotice(
+          payload.partialErrors?.length
+            ? `Imported ${imported} items. ${payload.partialErrors.join(" ")}`
+            : `Imported ${imported} ${provider === "github" ? "GitHub" : "Google"} items. Your canvas is up to date.`,
+        );
+      } catch (error) {
+        setSyncNotice(error instanceof Error ? error.message : `${provider} sync failed. Please reconnect.`);
+      } finally {
+        setSyncingProvider(null);
+        await refreshConnections();
+      }
+    },
+    [refreshConnections],
+  );
+
+  const disconnectProvider = async (provider: ProviderName) => {
+    const label = provider === "github" ? "GitHub" : "Google";
+    if (!window.confirm(`Disconnect ${label} from Novi? Your imported items will stay visible.`)) return;
+
+    setSyncNotice(`Disconnecting ${label}...`);
+    const response = await fetch("/api/connections/disconnect", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ provider }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    setSyncNotice(response.ok ? `${label} disconnected.` : payload.error ?? `Could not disconnect ${label}.`);
+    await refreshConnections();
   };
 
-  const runGithubSync = () => {
-    setSyncNotice("Novi is syncing GitHub sources...");
-    fetch("/api/sync/github", { method: "POST" })
-      .then((response) => response.json())
-      .then(
-        (payload: {
-          counts?: { repositories: number; issuesAndPRs: number; commits: number };
-          partialErrors?: string[];
-          error?: string;
-        }) => {
-          if (payload.error) {
-            setSyncNotice(payload.error);
-            return;
-          }
-          const counts = payload.counts ?? { repositories: 0, issuesAndPRs: 0, commits: 0 };
-          setSourceMode("connected");
-          const base = `Novi imported ${counts.repositories} repositories, ${counts.issuesAndPRs} issues/PRs, and ${counts.commits} commits.`;
-          setSyncNotice(
-            payload.partialErrors && payload.partialErrors.length > 0
-              ? `${base} Some sources need attention: ${payload.partialErrors.join(" | ")}`
-              : base,
-          );
-        },
-      )
-      .catch(() => setSyncNotice("GitHub sync failed. Try reconnecting GitHub."));
+  useEffect(() => {
+    if (!viewer || !connectionsLoaded || autoSyncStarted.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const provider = params.get("connected");
+    if (params.get("sync") !== "1" || (provider !== "google" && provider !== "github")) return;
+
+    autoSyncStarted.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+    queueMicrotask(() => void runProviderSync(provider));
+  }, [connectionsLoaded, runProviderSync, viewer]);
+
+  const enterDemo = () => {
+    setSetupDismissed(true);
+    window.localStorage.setItem("novi-setup-dismissed", "true");
   };
+
+  if (authLoading) {
+    return (
+      <main className="auth-screen auth-loading" aria-label="Loading Novi">
+        <NoviMark stacked />
+        <span>Preparing your canvas...</span>
+      </main>
+    );
+  }
+
+  if (!viewer && !guestPreview) {
+    return (
+      <main className="auth-screen">
+        <div className="auth-canvas" aria-hidden="true">
+          <span className="auth-orbit orbit-one" />
+          <span className="auth-orbit orbit-two" />
+          <span className="auth-node node-one" />
+          <span className="auth-node node-two" />
+          <span className="auth-node node-three" />
+          <span className="auth-node node-four" />
+        </div>
+        <header className="auth-brand"><NoviMark /></header>
+        <section className="auth-content">
+          <p className="kicker">Your world, understood</p>
+          <h1>One calm place for the work scattered across your tools.</h1>
+          <p className="auth-copy">
+            Sign in to build a private, source-backed view of your projects, documents, people, and recent work.
+          </p>
+          <div className="auth-actions">
+            <a className="primary-action" href="/signin-with-chatgpt?return_to=%2F">
+              <LogIn size={18} aria-hidden="true" />
+              Sign in to Novi
+            </a>
+            <button className="secondary-action" onClick={() => setGuestPreview(true)}>
+              Explore the demo
+            </button>
+          </div>
+          <p className="auth-footnote">Your connected data stays separated by account. Novi only requests read access.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <main className="setup-screen">
+        <header className="setup-header">
+          <NoviMark />
+          <div className="setup-account">
+            <span>{viewer?.displayName}</span>
+            <a href="/signout-with-chatgpt?return_to=%2F">Sign out</a>
+          </div>
+        </header>
+        <section className="setup-content">
+          <p className="kicker">Welcome to Novi</p>
+          <h1>Start with the place where your work already lives.</h1>
+          <p className="setup-copy">
+            Connect one source and Novi will import recent activity automatically. You can add or remove sources at any time.
+          </p>
+          <div className="setup-grid">
+            <article className="setup-option featured">
+              <Github size={28} aria-hidden="true" />
+              <div>
+                <span className="section-label">Recommended</span>
+                <h2>GitHub</h2>
+                <p>Bring in public repositories, issues, pull requests, and recent commits.</p>
+              </div>
+              {readiness.github ? (
+                <a className="primary-action" href="/api/connect/github">
+                  Connect GitHub <span aria-hidden="true">&rarr;</span>
+                </a>
+              ) : (
+                <button className="primary-action" disabled>GitHub setup in progress</button>
+              )}
+              <small>Read-only public activity. Novi cannot change your code.</small>
+            </article>
+            <article className="setup-option">
+              <Cloud size={28} aria-hidden="true" />
+              <div>
+                <span className="section-label">Optional</span>
+                <h2>Google</h2>
+                <p>Add recent Gmail, Calendar events, and Drive documents.</p>
+              </div>
+              {readiness.google ? (
+                <a className="secondary-action" href="/api/connect/google">Connect Google</a>
+              ) : (
+                <button className="secondary-action" disabled>Google unavailable</button>
+              )}
+              <small>Read-only access. Disconnect whenever you like.</small>
+            </article>
+          </div>
+          <button className="demo-link" onClick={enterDemo}>Continue with sample data</button>
+        </section>
+      </main>
+    );
+  }
 
   return (
-    <main className="novi-app">
+    <main className={guestPreview ? "novi-app reference-app guest-preview" : "novi-app reference-app"}>
       <nav className="novi-rail" aria-label="Primary navigation">
         <NoviMark />
         <div className="rail-links">
-          <button
-            className="rail-link"
-            onClick={() => {
-              setCommandOpen(true);
-              setActiveView("Canvas");
-            }}
-          >
-            <span aria-hidden="true">A</span>
-            Ask
-          </button>
           {navItems.map((item) => (
             <button
-              className={item === activeView ? "rail-link active" : "rail-link"}
-              key={item}
+              className={item.label === activeView ? "rail-link active" : "rail-link"}
+              key={item.label}
               onClick={() => {
-                setActiveView(item);
-                if (item === "Projects") setMode("Projects");
+                setActiveView(item.label);
+                if (item.label === "Projects") setMode("Projects");
               }}
             >
-              <span aria-hidden="true">{item.slice(0, 1)}</span>
-              {item}
+              <item.icon size={17} aria-hidden="true" />
+              {item.label}
             </button>
           ))}
         </div>
+        <div className="rail-account">
+          {viewer ? (
+            <>
+              <button className="account-button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen}>
+                <span><User size={16} aria-hidden="true" /></span>
+                <span className="account-copy"><strong>{viewer.displayName}</strong><small>{viewer.email}</small></span>
+              </button>
+              {accountOpen && (
+                <div className="account-menu">
+                  <strong>{viewer.displayName}</strong>
+                  <small>{viewer.email}</small>
+                  <a href="/signout-with-chatgpt?return_to=%2F"><LogOut size={15} aria-hidden="true" /> Sign out</a>
+                </div>
+              )}
+            </>
+          ) : (
+            <a className="account-button" href="/signin-with-chatgpt?return_to=%2F">
+              <span><LogIn size={16} aria-hidden="true" /></span>
+              <span className="account-copy"><strong>Sign in</strong><small>Save your canvas</small></span>
+            </a>
+          )}
+        </div>
         <button className="mobile-ask" onClick={() => setCommandOpen(true)} aria-label="Ask Novi">
-          <span aria-hidden="true">+</span>
+          <Sparkles size={20} aria-hidden="true" />
         </button>
       </nav>
 
-      <section className="novi-shell" aria-label="NOVI operating environment">
-        <header className="novi-header">
-          <div>
-            <p className="kicker">{isConnected ? "Connected intelligence" : `${mode} lens`}</p>
-            <h1>
-              {isConnected
-                ? connectedEntities.length > 0
-                  ? `Novi understands ${connectedEntities.length} objects from your world.`
-                  : "Connect your sources. Novi will build the map."
-                : demoModeBrief[mode]}
-            </h1>
+      <section className="novi-shell" data-view={activeView} aria-label="NOVI operating environment">
+        {guestPreview && (
+          <div className="demo-banner">
+            <span><Sparkles size={15} aria-hidden="true" /> You are exploring sample data.</span>
+            <a href="/signin-with-chatgpt?return_to=%2F">Sign in to connect your work</a>
           </div>
-          <button className="command-button" onClick={() => setCommandOpen(true)}>
+        )}
+        <header className="novi-header reference-header">
+          <div className="reference-brand">
+            <NoviMark />
+            <div>
+              <h1>NOVI</h1>
+              <p>Your world, understood.</p>
+            </div>
+          </div>
+          <button className="command-button" onClick={() => setCommandOpen(true)} aria-label="Ask Novi">
+            <Search size={16} aria-hidden="true" />
             <span>Ask Novi</span>
             <kbd>Ctrl K</kbd>
           </button>
@@ -1035,41 +1277,47 @@ export default function Home() {
         <section className="source-bar" aria-label="Connected sources">
           <div>
             <span className="section-label">Sources</span>
-            <strong>{sourceMode === "connected" ? "Live canvas" : "Demo isolated"}</strong>
+            <strong>{sourceMode === "connected" ? "Your connected world" : "Demo workspace"}</strong>
           </div>
           <div className="provider-strip">
-            {["google", "github"].map((provider) => {
+            {(["github", "google"] as ProviderName[]).map((provider) => {
               const status = providers.find((item) => item.provider === provider);
               const providerStatus = status?.status ?? "not_connected";
               const connected = providerIsConnected(status?.status);
               const canSync = ["connected", "needs_attention"].includes(providerStatus);
-              const busy = ["syncing", "indexing", "authorizing", "connecting"].includes(providerStatus);
-              const label = connected ? (canSync ? "Sync now" : providerStatus) : providerStatus === "error" ? "Reconnect" : "Connect";
-              const content = (
-                <>
-                  <span>{provider}</span>
-                  <strong>{label}</strong>
-                  <small>{status?.errorMessage ?? status?.email ?? status?.displayName ?? providerStatus}</small>
-                </>
-              );
-
-              if (connected) {
-                return (
-                  <button
-                    className="provider-link provider-button connected"
-                    key={provider}
-                    disabled={busy}
-                    onClick={provider === "google" ? runGoogleSync : runGithubSync}
-                  >
-                    {content}
-                  </button>
-                );
-              }
+              const busy = syncingProvider === provider || ["syncing", "indexing", "authorizing", "connecting"].includes(providerStatus);
+              const ProviderIcon = provider === "github" ? Github : Cloud;
+              const providerName = provider === "github" ? "GitHub" : "Google";
 
               return (
-                <a className={connected ? "provider-link connected" : "provider-link"} href={`/api/connect/${provider}`} key={provider}>
-                  {content}
-                </a>
+                <div className={connected ? "provider-tile connected" : "provider-tile"} key={provider}>
+                  <div className="provider-identity">
+                    <ProviderIcon size={19} aria-hidden="true" />
+                    <span><strong>{providerName}</strong><small>{status?.email ?? status?.displayName ?? providerStatusLabel(providerStatus)}</small></span>
+                  </div>
+                  <div className="provider-actions">
+                    {connected ? (
+                      <>
+                        <button disabled={busy || !canSync} onClick={() => void runProviderSync(provider)}>
+                          {busy ? <RefreshCw className="spin" size={15} aria-hidden="true" /> : <RefreshCw size={15} aria-hidden="true" />}
+                          {busy ? "Importing" : canSync ? "Sync" : providerStatusLabel(providerStatus)}
+                        </button>
+                        <button className="icon-action" onClick={() => void disconnectProvider(provider)} aria-label={`Disconnect ${providerName}`} title={`Disconnect ${providerName}`}>
+                          <X size={15} aria-hidden="true" />
+                        </button>
+                      </>
+                    ) : viewer ? (
+                      readiness[provider] ? (
+                        <a href={`/api/connect/${provider}`}>{providerStatus === "error" ? "Reconnect" : "Connect"}</a>
+                      ) : (
+                        <button disabled>Setup needed</button>
+                      )
+                    ) : (
+                      <a href="/signin-with-chatgpt?return_to=%2F">Sign in</a>
+                    )}
+                  </div>
+                  {status?.errorMessage && <p className="provider-error">{status.errorMessage}</p>}
+                </div>
               );
             })}
           </div>
@@ -1089,16 +1337,23 @@ export default function Home() {
           ))}
         </section>
 
-        {activeView === "Canvas" ? (
+        {activeView === "Home" || activeView === "Canvas" ? (
           <>
         <section className="world-grid" aria-label="Novi Life Canvas">
           <aside className="context-wing" aria-label="Current context">
-            <p className="section-label">Current object</p>
+            <p className="section-label">Project overview</p>
             <h2>{selected.label}</h2>
-            <p>{selected.detail}</p>
-            <div className="insight-block">
-              <span>Novi reading</span>
-              <strong>{selected.summary}</strong>
+            <p>{selected.summary}</p>
+            <div className="project-stats" aria-label="Project statistics">
+              <span><strong>{visibleEntities.filter((entity) => entity.type === "repository").length}</strong>Repos</span>
+              <span><strong>{visibleEntities.filter((entity) => entity.type === "task").length}</strong>Tasks</span>
+              <span><strong>{visibleEntities.filter((entity) => entity.type === "person").length}</strong>People</span>
+            </div>
+            <div className="activity-sparkline">
+              <span><ActivityIcon size={14} aria-hidden="true" /> Activity</span>
+              <svg viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="0,37 28,31 54,34 81,20 108,25 136,12 164,22 190,10 218,15 240,5" />
+              </svg>
             </div>
             <button
               className="quiet-action"
@@ -1107,8 +1362,13 @@ export default function Home() {
                 setCommandOpen(true);
               }}
             >
-              Ask Novi about this
+                Ask about this project
             </button>
+            {selected.sourceUrl && (
+              <a className="source-action" href={selected.sourceUrl} target="_blank" rel="noreferrer">
+                Open original source <span aria-hidden="true">&rarr;</span>
+              </a>
+            )}
           </aside>
 
           <div className="canvas-stage">
@@ -1119,11 +1379,19 @@ export default function Home() {
               </div>
               <NoviMark stacked />
             </div>
-            <div className={isConnected ? "life-canvas source-map" : "life-canvas"}>
+            <div className="life-canvas">
+            {canvasEntities.slice(1).map((entity, index) => (
+              <span
+                className="canvas-spoke"
+                key={`spoke-${entity.id}`}
+                style={{ "--spoke-angle": `${index * 60 - 90}deg` } as React.CSSProperties}
+                aria-hidden="true"
+              />
+            ))}
             <svg className="relation-layer" viewBox="0 0 100 100" aria-hidden="true">
-              {visibleRelations.map((relation) => {
-                const from = activeEntities.find((entity) => entity.id === relation.from);
-                const to = activeEntities.find((entity) => entity.id === relation.to);
+              {canvasRelations.map((relation) => {
+                const from = canvasEntities.find((entity) => entity.id === relation.from);
+                const to = canvasEntities.find((entity) => entity.id === relation.to);
                 if (!from || !to) return null;
                 const active = from.id === selected.id || to.id === selected.id;
                 return (
@@ -1140,9 +1408,9 @@ export default function Home() {
               })}
             </svg>
 
-            {visibleRelations.map((relation) => {
-              const from = activeEntities.find((entity) => entity.id === relation.from);
-              const to = activeEntities.find((entity) => entity.id === relation.to);
+            {canvasRelations.map((relation) => {
+              const from = canvasEntities.find((entity) => entity.id === relation.from);
+              const to = canvasEntities.find((entity) => entity.id === relation.to);
               if (!from || !to) return null;
               const active = from.id === selected.id || to.id === selected.id;
               return (
@@ -1159,9 +1427,9 @@ export default function Home() {
               );
             })}
 
-            {visibleEntities.map((entity) => {
+            {canvasEntities.map((entity) => {
               const active = entity.id === selected.id;
-              const related = visibleRelations.some(
+              const related = canvasRelations.some(
                 (relation) =>
                   (relation.from === selected.id && relation.to === entity.id) ||
                   (relation.to === selected.id && relation.from === entity.id),
@@ -1181,7 +1449,7 @@ export default function Home() {
                   }
                   aria-pressed={active}
                 >
-                  <span className="node-mark" />
+                  <span className="node-mark"><EntityGlyph type={entity.type} /></span>
                   <span className="node-label">{entity.label}</span>
                   <span className="node-signal">{entity.signal}</span>
                 </button>
@@ -1192,8 +1460,8 @@ export default function Home() {
 
           <aside className="intelligence-wing" aria-label="Attention and related context">
             <div className="attention-panel">
-              <p className="section-label">Attention</p>
-              <h2>What deserves focus</h2>
+              <p className="section-label">Recent activity</p>
+              <h2>While you were away</h2>
               <div className="attention-list">
                 {attentionItems.length > 0 ? (
                   attentionItems.map((entity) => (
@@ -1210,18 +1478,12 @@ export default function Home() {
             </div>
 
             <div className="connection-panel">
-              <p className="section-label">Connected context</p>
-              <div className="connection-list">
-                {relatedEntities.length > 0 ? (
-                  relatedEntities.map(({ relation, entity }) => (
-                    <button key={`${relation.from}-${relation.to}`} onClick={() => setSelectedId(entity.id)}>
-                      <span>{relation.label}</span>
-                      <strong>{entity.label}</strong>
-                    </button>
-                  ))
-                ) : (
-                  <p className="empty-note">Select another object to inspect its relationship trail.</p>
-                )}
+              <p className="section-label">Insights</p>
+              <h2>Signals across your world</h2>
+              <div className="insight-bars">
+                <button onClick={() => setActiveView("Projects")}><span>Project momentum</span><strong>84%</strong><i style={{ width: "84%" }} /></button>
+                <button onClick={() => setActiveView("Tasks")}><span>Task completion</span><strong>68%</strong><i style={{ width: "68%" }} /></button>
+                <button onClick={() => setActiveView("People")}><span>Team activity</span><strong>76%</strong><i style={{ width: "76%" }} /></button>
               </div>
             </div>
           </aside>
@@ -1277,6 +1539,35 @@ export default function Home() {
                 Ask Novi
               </button>
             </div>
+            {activeView === "Insights" ? (
+              <div className="summary-grid">
+                <article><BarChart3 aria-hidden="true" /><span>Active objects</span><strong>{visibleEntities.length}</strong><p>Items Novi can place in context.</p></article>
+                <article><Network aria-hidden="true" /><span>Relationships</span><strong>{visibleRelations.length}</strong><p>Source-backed connections in this lens.</p></article>
+                <article><ActivityIcon aria-hidden="true" /><span>Needs attention</span><strong>{attentionItems.length}</strong><p>Signals that may deserve a response.</p></article>
+              </div>
+            ) : activeView === "Settings" ? (
+              <div className="settings-grid">
+                <article>
+                  <User aria-hidden="true" />
+                  <span>Account</span>
+                  <strong>{viewer?.displayName ?? "Demo visitor"}</strong>
+                  <p>{viewer?.email ?? "Sign in to keep your own workspace."}</p>
+                  {viewer ? <a href="/signout-with-chatgpt?return_to=%2F">Sign out</a> : <a href="/signin-with-chatgpt?return_to=%2F">Sign in</a>}
+                </article>
+                <article>
+                  <Database aria-hidden="true" />
+                  <span>Connections</span>
+                  <strong>{providers.filter((provider) => providerIsConnected(provider.status)).length} active</strong>
+                  <p>Manage GitHub and Google from the Sources panel.</p>
+                  <button onClick={() => setActiveView("Sources")}>Open sources</button>
+                </article>
+              </div>
+            ) : activeView === "Help" ? (
+              <div className="settings-grid">
+                <article><Search aria-hidden="true" /><span>Ask Novi</span><strong>Search your context</strong><p>Find an object or ask what changed.</p><button onClick={() => setCommandOpen(true)}>Open search</button></article>
+                <article><Github aria-hidden="true" /><span>GitHub</span><strong>Connect safely</strong><p>Novi imports read-only public repository activity.</p>{viewer ? <a href="/api/connect/github">Connect GitHub</a> : <a href="/signin-with-chatgpt?return_to=%2F">Sign in first</a>}</article>
+              </div>
+            ) : (
             <div className="object-grid">
               {focusEntities.length > 0 ? (
                 focusEntities.map((entity) => (
@@ -1294,6 +1585,7 @@ export default function Home() {
                 <p className="empty-note">Nothing in this view yet. Connect and sync sources to let Novi fill it in.</p>
               )}
             </div>
+            )}
           </section>
         )}
       </section>
@@ -1303,7 +1595,9 @@ export default function Home() {
           <div className="command-surface">
             <div className="command-brand">
               <NoviMark />
-              <button onClick={() => setCommandOpen(false)}>Close</button>
+              <button onClick={() => setCommandOpen(false)} aria-label="Close" title="Close">
+                <X size={18} aria-hidden="true" />
+              </button>
             </div>
             <div className="command-input-row">
               <span aria-hidden="true">?</span>
@@ -1331,7 +1625,9 @@ export default function Home() {
             {sourceMode === "connected" && query && (
               <button
                 className="connected-search"
+                disabled={searching}
                 onClick={() => {
+                  setSearching(true);
                   setConnectedAnswer("Searching connected sources...");
                   fetch("/api/search", {
                     method: "POST",
@@ -1348,10 +1644,12 @@ export default function Home() {
                     .then((payload) => {
                       setConnectedAnswer(payload.answer ?? "No source-backed answer was returned.");
                     })
-                    .catch((error: Error) => setConnectedAnswer(error.message));
+                    .catch((error: Error) => setConnectedAnswer(error.message))
+                    .finally(() => setSearching(false));
                 }}
               >
-                Search connected sources
+                {searching ? <RefreshCw className="spin" size={16} aria-hidden="true" /> : <Search size={16} aria-hidden="true" />}
+                {searching ? "Searching" : "Search connected sources"}
               </button>
             )}
             <div className="search-results">
