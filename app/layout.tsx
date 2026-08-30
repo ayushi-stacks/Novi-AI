@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import "./globals.css";
 
 const description =
-  "A beautiful AI layer over your actual digital life, built around context, memory, sources, and connected work.";
+  "NOVI is an AI personal intelligence environment for context, memory, sources, and connected work.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
-      apple: "/favicon.svg",
+      apple: "/brand/novi-app-icon.svg",
     },
   };
 }

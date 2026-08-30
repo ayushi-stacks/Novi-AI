@@ -18,6 +18,7 @@ import {
   LogOut,
   Network,
   Notebook,
+  PlugZap,
   RefreshCw,
   Search,
   Settings,
@@ -26,6 +27,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { NoviLogo } from "./components/brand/NoviLogo";
 
 type Mode = "All" | "Study" | "Projects" | "Career" | "Personal" | "Focus";
 type ActiveView =
@@ -777,19 +779,6 @@ const emptyConnectedEntity: Entity = {
     "Once a Google or GitHub sync completes, real emails, events, documents, and repositories will appear here as canvas objects.",
 };
 
-function NoviMark({ stacked = false }: { stacked?: boolean }) {
-  return (
-    <span className={stacked ? "novi-lockup stacked" : "novi-lockup"} aria-label="NOVI">
-      <span className="novi-mark" aria-hidden="true">
-        <span className="mark-piece left" />
-        <span className="mark-piece flow" />
-        <span className="mark-piece right" />
-      </span>
-      <span className="novi-word">NOVI</span>
-    </span>
-  );
-}
-
 function sourceLabel(entity: Entity) {
   return entity.provider ?? entity.type;
 }
@@ -828,6 +817,7 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true);
   const [guestPreview, setGuestPreview] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [setupDismissed, setSetupDismissed] = useState(false);
   const [readiness, setReadiness] = useState<ProviderReadiness>({ google: false, github: false });
   const [connectionsLoaded, setConnectionsLoaded] = useState(false);
@@ -942,6 +932,7 @@ export default function Home() {
       }
       if (event.key === "Escape") {
         setCommandOpen(false);
+        setIntegrationsOpen(false);
       }
     };
 
@@ -1113,7 +1104,7 @@ export default function Home() {
   if (authLoading) {
     return (
       <main className="auth-screen auth-loading" aria-label="Loading Novi">
-        <NoviMark stacked />
+        <NoviLogo variant="stacked" theme="gradient" />
         <span>Preparing your canvas...</span>
       </main>
     );
@@ -1130,7 +1121,7 @@ export default function Home() {
           <span className="auth-node node-three" />
           <span className="auth-node node-four" />
         </div>
-        <header className="auth-brand"><NoviMark /></header>
+        <header className="auth-brand"><NoviLogo /></header>
         <section className="auth-content">
           <p className="kicker">Your world, understood</p>
           <h1>One calm place for the work scattered across your tools.</h1>
@@ -1156,7 +1147,7 @@ export default function Home() {
     return (
       <main className="setup-screen">
         <header className="setup-header">
-          <NoviMark />
+          <NoviLogo />
           <div className="setup-account">
             <span>{viewer?.displayName}</span>
             <a href="/signout-with-chatgpt?return_to=%2F">Sign out</a>
@@ -1209,7 +1200,7 @@ export default function Home() {
   return (
     <main className={guestPreview ? "novi-app reference-app guest-preview" : "novi-app reference-app"}>
       <nav className="novi-rail" aria-label="Primary navigation">
-        <NoviMark />
+        <NoviLogo variant="mark" />
         <div className="rail-links">
           {navItems.map((item) => (
             <button
@@ -1217,6 +1208,7 @@ export default function Home() {
               key={item.label}
               onClick={() => {
                 setActiveView(item.label);
+                setIntegrationsOpen(false);
                 if (item.label === "Projects") setMode("Projects");
               }}
             >
@@ -1261,7 +1253,7 @@ export default function Home() {
         )}
         <header className="novi-header reference-header">
           <div className="reference-brand">
-            <NoviMark />
+            <NoviLogo variant="mark" theme="gradient" />
             <div>
               <h1>NOVI</h1>
               <p>Your world, understood.</p>
@@ -1274,10 +1266,31 @@ export default function Home() {
           </button>
         </header>
 
-        <section className="source-bar" aria-label="Connected sources">
+        {(activeView === "Home" || activeView === "Canvas" || activeView === "Sources") && (
+        <div className={integrationsOpen ? "integration-control open" : "integration-control"}>
+          {(activeView === "Home" || activeView === "Canvas") && (
+            <button
+              className="integration-trigger"
+              onClick={() => setIntegrationsOpen((open) => !open)}
+              aria-label="Integrations"
+              aria-expanded={integrationsOpen}
+              aria-controls="integration-panel"
+              title="Integrations"
+            >
+              <PlugZap size={19} aria-hidden="true" />
+              <span className={hasConnection ? "integration-status connected" : "integration-status"} aria-hidden="true" />
+            </button>
+          )}
+          {(activeView === "Sources" || integrationsOpen) && (
+        <section className="source-bar" id="integration-panel" aria-label="Integrations">
           <div>
-            <span className="section-label">Sources</span>
+            <span className="section-label">Integrations</span>
             <strong>{sourceMode === "connected" ? "Your connected world" : "Demo workspace"}</strong>
+            {(activeView === "Home" || activeView === "Canvas") && (
+              <button className="integration-close" onClick={() => setIntegrationsOpen(false)} aria-label="Close integrations" title="Close">
+                <X size={14} aria-hidden="true" />
+              </button>
+            )}
           </div>
           <div className="provider-strip">
             {(["github", "google"] as ProviderName[]).map((provider) => {
@@ -1323,6 +1336,9 @@ export default function Home() {
           </div>
           {syncNotice && <p className="sync-notice">{syncNotice}</p>}
         </section>
+          )}
+        </div>
+        )}
 
         <section className="lens-strip" aria-label="Context lenses">
           {modes.map((item) => (
@@ -1377,7 +1393,7 @@ export default function Home() {
                 <p className="section-label">Life Canvas</p>
                 <strong>{visibleEntities.length} objects / {visibleRelations.length} relationships</strong>
               </div>
-              <NoviMark stacked />
+              <NoviLogo variant="stacked" />
             </div>
             <div className="life-canvas">
             {canvasEntities.slice(1).map((entity, index) => (
@@ -1594,7 +1610,7 @@ export default function Home() {
         <div className="command-overlay" role="dialog" aria-modal="true" aria-label="Ask Novi">
           <div className="command-surface">
             <div className="command-brand">
-              <NoviMark />
+              <NoviLogo />
               <button onClick={() => setCommandOpen(false)} aria-label="Close" title="Close">
                 <X size={18} aria-hidden="true" />
               </button>

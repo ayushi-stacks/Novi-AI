@@ -3,10 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("brands the application as NOVI", async () => {
-  const [layout, manifest, favicon, packageJson] = await Promise.all([
+  const [layout, manifest, favicon, appIcon, brandComponent, packageJson] = await Promise.all([
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/favicon.svg", import.meta.url), "utf8"),
+    readFile(new URL("../public/brand/novi-app-icon.svg", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/brand/NoviLogo.tsx", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
@@ -16,8 +18,14 @@ test("brands the application as NOVI", async () => {
   assert.match(layout, /twitter:\s*\{/);
   assert.match(manifest, /"name":\s*"NOVI"/);
   assert.match(manifest, /"short_name":\s*"NOVI"/);
+  assert.match(manifest, /novi-app-icon\.svg/);
+  assert.match(manifest, /"sizes":\s*"192x192"/);
+  assert.match(manifest, /"sizes":\s*"512x512"/);
   assert.match(packageJson, /"name":\s*"novi"/);
   assert.match(favicon, /<svg[^>]+viewBox="0 0 64 64"/);
+  assert.match(appIcon, /<svg[^>]+viewBox="0 0 64 64"/);
+  assert.match(brandComponent, /export function NoviLogo/);
+  assert.match(brandComponent, /variant\?: "horizontal" \| "stacked" \| "mark"/);
 
   assert.doesNotMatch(layout + manifest + packageJson, new RegExp(["Life Canvas", "OS"].join(" ")));
   assert.doesNotMatch(packageJson, new RegExp(["site-creator", "vinext-starter"].join("-")));
@@ -29,7 +37,7 @@ test("keeps the Novi visual system in the main experience", async () => {
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /function NoviMark/);
+  assert.match(page, /import \{ NoviLogo \}/);
   assert.match(page, /Ask Novi/);
   assert.match(page, /"novi-app reference-app guest-preview" : "novi-app reference-app"/);
   assert.match(page, /aria-label="Novi Life Canvas"/);
@@ -39,6 +47,8 @@ test("keeps the Novi visual system in the main experience", async () => {
   assert.match(page, /Welcome to Novi/);
   assert.match(page, /runProviderSync/);
   assert.match(page, /disconnectProvider/);
+  assert.match(page, /className="integration-trigger"/);
+  assert.match(page, /aria-controls="integration-panel"/);
   assert.match(page, /Open original source/);
   assert.match(page, /fetch\("\/api\/me"\)/);
   assert.match(page, /fetch\("\/api\/connections\/readiness"\)/);
@@ -58,6 +68,7 @@ test("keeps the Novi visual system in the main experience", async () => {
   assert.match(css, /\.auth-screen/);
   assert.match(css, /\.setup-screen/);
   assert.match(css, /\.provider-tile/);
+  assert.match(css, /\.integration-trigger/);
   assert.match(css, /\.rail-account/);
   assert.match(css, /\.life-canvas/);
   assert.match(css, /\.reference-app/);

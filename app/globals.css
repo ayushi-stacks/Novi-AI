@@ -462,47 +462,32 @@ p {
 }
 
 .novi-mark {
-  position: relative;
-  display: inline-block;
+  display: block;
   width: 42px;
-  height: 32px;
+  height: 36px;
+  flex: 0 0 auto;
   filter: drop-shadow(0 0 18px rgba(147, 92, 255, 0.38));
 }
 
-.mark-piece {
-  position: absolute;
-  display: block;
-  background: linear-gradient(145deg, #fbf8ff 0%, var(--lavender) 34%, var(--purple) 100%);
+.novi-mark-piece {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
-.mark-piece.left {
-  left: 0;
-  bottom: 1px;
-  width: 13px;
-  height: 25px;
-  border-radius: 0 16px 16px 0;
-  clip-path: ellipse(84% 56% at 90% 50%);
+.novi-mark-left {
   animation: novi-left 900ms ease both;
 }
 
-.mark-piece.flow {
-  left: 8px;
-  top: 0;
-  width: 28px;
-  height: 32px;
-  border-radius: 18px 2px 18px 2px;
-  transform: skewX(18deg) rotate(-22deg);
+.novi-mark-flow {
   animation: novi-flow 920ms ease both;
 }
 
-.mark-piece.right {
-  right: 0;
-  top: 1px;
-  width: 13px;
-  height: 25px;
-  border-radius: 16px 0 0 16px;
-  clip-path: ellipse(84% 56% at 10% 50%);
+.novi-mark-right {
   animation: novi-right 900ms ease both;
+}
+
+.novi-lockup.mark-only {
+  gap: 0;
 }
 
 .rail-links {
@@ -660,6 +645,66 @@ kbd {
   padding: 12px 0 18px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+}
+
+.integration-control {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.integration-trigger,
+.integration-close {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-strong);
+  color: var(--lavender);
+  cursor: pointer;
+}
+
+.integration-trigger {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.3);
+}
+
+.integration-trigger:hover,
+.integration-trigger[aria-expanded="true"] {
+  border-color: rgba(183, 153, 255, 0.5);
+  background: rgba(124, 77, 255, 0.18);
+}
+
+.integration-status {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #0a1018;
+  border-radius: 50%;
+  background: #8a6ac8;
+}
+
+.integration-status.connected {
+  background: #4bd5a8;
+  box-shadow: 0 0 8px rgba(75, 213, 168, 0.7);
+}
+
+.integration-close {
+  width: 26px;
+  height: 26px;
+  color: var(--quiet);
+}
+
+@keyframes integration-open {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 .source-bar strong {
@@ -1448,22 +1493,21 @@ kbd {
 @keyframes novi-left {
   from {
     opacity: 0;
-    transform: translateX(8px);
+    transform: translateX(5px);
   }
 }
 
 @keyframes novi-right {
   from {
     opacity: 0;
-    transform: translateX(-8px);
+    transform: translateX(-5px);
   }
 }
 
 @keyframes novi-flow {
   from {
     opacity: 0;
-    filter: brightness(1.7);
-    transform: translateY(4px) skewX(18deg) rotate(-22deg);
+    transform: translateY(4px);
   }
 }
 
@@ -2291,11 +2335,17 @@ kbd {
     font-size: 0.68rem;
   }
 
-  .reference-app .source-bar {
+  .reference-app .integration-control {
     position: absolute;
     z-index: 9;
     left: 18px;
     bottom: 18px;
+  }
+
+  .reference-app .integration-control .source-bar {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 10px);
     display: grid;
     width: 292px;
     grid-template-columns: 1fr;
@@ -2306,12 +2356,13 @@ kbd {
     padding: 14px;
     background: rgba(7, 13, 21, 0.96);
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
+    animation: integration-open 180ms ease both;
   }
 
   .reference-app .source-bar > div:first-child {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
   }
 
   .reference-app .source-bar .section-label {
@@ -2319,6 +2370,7 @@ kbd {
   }
 
   .reference-app .source-bar > div:first-child strong {
+    margin-left: auto;
     color: #707c8e;
     font-size: 0.62rem;
     font-weight: 500;
@@ -2375,10 +2427,6 @@ kbd {
     box-shadow: none;
   }
 
-  .reference-app .novi-shell:not([data-view="Home"]):not([data-view="Canvas"]):not([data-view="Sources"]) .source-bar {
-    display: none;
-  }
-
   .reference-app .novi-shell[data-view="Sources"] {
     display: block;
     overflow-y: auto;
@@ -2390,12 +2438,18 @@ kbd {
     height: 132px;
   }
 
+  .reference-app .novi-shell[data-view="Sources"] .integration-control {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    margin: 0 26px 14px;
+  }
+
   .reference-app .novi-shell[data-view="Sources"] .source-bar {
     position: relative;
     left: auto;
     bottom: auto;
     width: auto;
-    margin: 0 26px 14px;
   }
 
   .reference-app .novi-shell[data-view="Sources"] .provider-strip {
@@ -2509,10 +2563,60 @@ kbd {
     display: none;
   }
 
-  .reference-app .source-bar,
+  .reference-app .integration-control:not(.open) .source-bar,
   .reference-app .lens-strip,
   .reference-app .canvas-header {
     display: none;
+  }
+
+  .reference-app .integration-control {
+    justify-items: end;
+    margin-bottom: 12px;
+  }
+
+  .reference-app .integration-control.open .source-bar {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr;
+    border: 1px solid #17202b;
+    border-radius: 6px;
+    padding: 14px;
+    background: #070d15;
+    animation: integration-open 180ms ease both;
+  }
+
+  .reference-app .integration-control.open .source-bar > div:first-child {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 10px;
+    align-items: center;
+  }
+
+  .reference-app .integration-control.open .source-bar .section-label,
+  .reference-app .integration-control.open .source-bar > div:first-child strong {
+    grid-column: 1;
+  }
+
+  .reference-app .integration-control.open .source-bar > div:first-child strong {
+    font-size: 1rem;
+  }
+
+  .reference-app .integration-control.open .integration-close {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .reference-app .integration-control.open .provider-strip {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+  }
+
+  .reference-app .integration-control.open .provider-tile {
+    width: 100%;
+    min-width: 0;
   }
 
   .reference-app .world-grid {
@@ -2634,5 +2738,9 @@ kbd {
   .reference-app .novi-shell[data-view="Sources"] .provider-tile {
     width: 100%;
     min-width: 0;
+  }
+
+  .reference-app .novi-shell[data-view="Sources"] .integration-control {
+    margin-bottom: 0;
   }
 }
