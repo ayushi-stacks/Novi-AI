@@ -4,9 +4,10 @@ NOVI is an AI personal intelligence environment that turns connected work data i
 
 ![NOVI dashboard preview](./public/og.png)
 
-Live deployment:
+Live deployments:
 
-https://life-canvas-os.jobsuit-0163.chatgpt.site
+- Vercel: https://novi-ai-six.vercel.app
+- Sites runtime: https://life-canvas-os.jobsuit-0163.chatgpt.site
 
 ## What It Does
 
@@ -139,6 +140,8 @@ Every imported object should retain provider, provider ID, source URL, timestamp
 ## Deployment
 
 The site uses Sites with D1 binding `DB`, declared in `.openai/hosting.json`.
+
+The public Vercel project uses `vercel-proxy/vercel.json` as an edge rewrite to the Sites runtime. This keeps the Vercel portfolio URL on the same tested interface and API implementation while preserving D1, ChatGPT sign-in, and connected-source functionality.
 
 Production environment values should be configured through Sites, not committed to source. The site should be published with public access for a portfolio so visitors can open the demo; signing in is only required when they connect their own data.
 
