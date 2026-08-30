@@ -56,6 +56,7 @@ test("keeps the Novi visual system in the main experience", async () => {
   assert.match(page, /const canvasPositions = \[/);
   assert.match(page, /className="life-canvas"/);
   assert.match(page, /className="canvas-spoke"/);
+  assert.match(page, /className="lower-system"/);
   assert.match(page, /className="focus-view"/);
   assert.match(page, /connectedEntities/);
   assert.match(page, /fetch\("\/api\/connections\/status"\)/);
@@ -74,6 +75,11 @@ test("keeps the Novi visual system in the main experience", async () => {
   assert.match(css, /\.reference-app/);
   assert.match(css, /\.project-stats/);
   assert.match(css, /\.insight-bars/);
+  assert.match(css, /@media \(min-width: 841px\)/);
+  assert.match(css, /grid-template-rows:\s*auto auto auto/);
+  assert.match(css, /overflow-y:\s*auto/);
+  assert.match(css, /\.reference-app \.lower-system \{/);
+  assert.match(css, /@media \(max-width: 840px\)/);
   assert.match(css, /\.object-card/);
   assert.match(css, /\.command-overlay/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);

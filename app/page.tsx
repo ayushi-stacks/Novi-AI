@@ -1206,6 +1206,7 @@ export default function Home() {
             <button
               className={item.label === activeView ? "rail-link active" : "rail-link"}
               key={item.label}
+              aria-label={item.label}
               onClick={() => {
                 setActiveView(item.label);
                 setIntegrationsOpen(false);
@@ -1503,7 +1504,6 @@ export default function Home() {
               </div>
             </div>
           </aside>
-        </section>
 
         <section className="lower-system">
           <div className="timeline" aria-label="Source-backed activity">
@@ -1542,6 +1542,7 @@ export default function Home() {
               ))
             )}
           </div>
+        </section>
         </section>
           </>
         ) : (

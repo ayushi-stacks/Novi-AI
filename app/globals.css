@@ -1515,7 +1515,7 @@ kbd {
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 840px) {
   .novi-app {
     grid-template-columns: 1fr;
   }
@@ -1576,7 +1576,7 @@ kbd {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 840px) {
   .auth-brand,
   .setup-header {
     padding: 20px 18px;
@@ -1974,7 +1974,7 @@ kbd {
   cursor: pointer;
 }
 
-@media (min-width: 1181px) {
+@media (min-width: 841px) {
   .reference-app {
     grid-template-columns: 145px minmax(0, 1fr);
     height: 100svh;
@@ -2113,8 +2113,7 @@ kbd {
     color: #7e8998;
   }
 
-  .reference-app .lens-strip,
-  .reference-app .lower-system {
+  .reference-app .lens-strip {
     display: none;
   }
 
@@ -2123,15 +2122,23 @@ kbd {
     inset: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr) 310px;
-    grid-template-rows: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
     gap: 0;
     min-height: 0;
+    align-items: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: #3f315d #070c13;
+    scrollbar-width: thin;
   }
 
   .reference-app .canvas-stage {
+    position: sticky;
+    top: 0;
     grid-column: 1;
-    grid-row: 1;
-    height: 100%;
+    grid-row: 1 / span 3;
+    height: 100svh;
     min-width: 0;
   }
 
@@ -2247,10 +2254,9 @@ kbd {
     z-index: 6;
     grid-column: 2;
     grid-row: 1;
-    align-self: start;
-    height: 366px;
-    margin: 8px;
-    overflow: hidden;
+    height: auto;
+    margin: 8px 8px 0;
+    overflow: visible;
     border-color: #17202b;
     border-radius: 6px;
     padding: 20px;
@@ -2294,10 +2300,64 @@ kbd {
     position: relative;
     z-index: 6;
     grid-column: 2;
-    grid-row: 1;
-    align-self: start;
+    grid-row: 2;
     gap: 8px;
-    margin: 382px 8px 8px;
+    margin: 8px;
+  }
+
+  .reference-app .lower-system {
+    position: relative;
+    z-index: 6;
+    grid-column: 2;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin: 0 8px 8px;
+  }
+
+  .reference-app .lower-system .timeline,
+  .reference-app .lower-system .memory-panel {
+    border-color: #17202b;
+    border-radius: 6px;
+    padding: 16px;
+    background: var(--reference-panel);
+    box-shadow: none;
+  }
+
+  .reference-app .lower-system h2 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .reference-app .lower-system .activity-row {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 4px 8px;
+    padding: 9px 0;
+  }
+
+  .reference-app .lower-system .activity-row strong {
+    grid-column: 1 / -1;
+    font-size: 0.72rem;
+  }
+
+  .reference-app .lower-system .activity-row time,
+  .reference-app .lower-system .activity-row span {
+    font-size: 0.58rem;
+  }
+
+  .reference-app .lower-system .memory-row {
+    padding: 11px 0;
+  }
+
+  .reference-app .lower-system .memory-row strong {
+    font-size: 0.75rem;
+  }
+
+  .reference-app .lower-system .memory-row p {
+    font-size: 0.68rem;
+    line-height: 1.45;
   }
 
   .reference-app .attention-panel,
@@ -2320,10 +2380,6 @@ kbd {
     border-radius: 4px;
     padding: 7px 8px;
     background: rgba(255, 255, 255, 0.025);
-  }
-
-  .reference-app .attention-item:nth-child(n + 4) {
-    display: none;
   }
 
   .reference-app .attention-item span,
@@ -2463,7 +2519,91 @@ kbd {
   }
 }
 
-@media (max-width: 1180px) {
+@media (min-width: 841px) and (max-width: 1180px) {
+  .reference-app {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  .reference-app .novi-rail {
+    padding-inline: 6px;
+  }
+
+  .reference-app .rail-link {
+    justify-content: flex-start;
+    gap: 8px;
+    padding-inline: 12px;
+    font-size: 0.66rem;
+  }
+
+  .reference-app .demo-banner,
+  .reference-app .novi-header {
+    right: 280px;
+  }
+
+  .reference-app .novi-header {
+    padding-inline: 26px;
+  }
+
+  .reference-app .reference-brand {
+    gap: 38px;
+  }
+
+  .reference-app .reference-brand .novi-lockup {
+    transform: scale(1.3);
+  }
+
+  .reference-app .reference-brand h1 {
+    font-size: 3rem;
+  }
+
+  .reference-app .reference-brand p {
+    font-size: 0.6rem;
+  }
+
+  .reference-app .world-grid {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .reference-app .context-wing,
+  .reference-app .attention-panel,
+  .reference-app .connection-panel,
+  .reference-app .lower-system .timeline,
+  .reference-app .lower-system .memory-panel {
+    padding: 14px;
+  }
+
+  .reference-app .node {
+    width: 124px;
+    max-width: 124px;
+  }
+
+  .reference-app .node-mark {
+    width: 50px;
+    height: 50px;
+  }
+
+  .reference-app .node.selected {
+    width: 174px;
+    max-width: 174px;
+  }
+
+  .reference-app .node.selected .node-mark {
+    width: 80px;
+    height: 80px;
+  }
+
+  .reference-app .node-label {
+    max-width: 116px;
+    font-size: 0.72rem;
+  }
+
+  .reference-app .node.selected .node-label {
+    max-width: 166px;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 840px) {
   .reference-app {
     display: block;
     background: #03070c;
@@ -2523,7 +2663,7 @@ kbd {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 840px) {
   .reference-app .novi-shell {
     padding-top: 0;
   }
