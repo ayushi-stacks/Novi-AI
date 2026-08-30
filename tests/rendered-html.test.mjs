@@ -49,6 +49,7 @@ test("keeps the Novi visual system in the main experience", async () => {
   assert.match(page, /disconnectProvider/);
   assert.match(page, /className="integration-trigger"/);
   assert.match(page, /aria-controls="integration-panel"/);
+  assert.match(page, /<NoviLogo variant="horizontal" theme="gradient" \/>/);
   assert.match(page, /Open original source/);
   assert.match(page, /fetch\("\/api\/me"\)/);
   assert.match(page, /fetch\("\/api\/connections\/readiness"\)/);
@@ -73,6 +74,8 @@ test("keeps the Novi visual system in the main experience", async () => {
   assert.match(css, /\.rail-account/);
   assert.match(css, /\.life-canvas/);
   assert.match(css, /\.reference-app/);
+  assert.match(css, /\.reference-app \.reference-brand \.novi-mark/);
+  assert.match(css, /width:\s*28px/);
   assert.match(css, /\.project-stats/);
   assert.match(css, /\.insight-bars/);
   assert.match(css, /@media \(min-width: 841px\)/);

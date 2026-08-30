@@ -1254,11 +1254,7 @@ export default function Home() {
         )}
         <header className="novi-header reference-header">
           <div className="reference-brand">
-            <NoviLogo variant="mark" theme="gradient" />
-            <div>
-              <h1>NOVI</h1>
-              <p>Your world, understood.</p>
-            </div>
+            <NoviLogo variant="horizontal" theme="gradient" />
           </div>
           <button className="command-button" onClick={() => setCommandOpen(true)} aria-label="Ask Novi">
             <Search size={16} aria-hidden="true" />

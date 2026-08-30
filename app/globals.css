@@ -1762,32 +1762,28 @@ kbd {
 .reference-app .reference-brand {
   display: flex;
   align-items: center;
-  gap: 58px;
 }
 
 .reference-app .reference-brand .novi-lockup {
-  transform: scale(1.75);
-  transform-origin: left center;
+  gap: 8px;
+  transform: none;
 }
 
-.reference-app .reference-brand .novi-word,
 .reference-app .novi-rail > .novi-lockup .novi-word {
   display: none;
 }
 
-.reference-app .reference-brand h1 {
-  margin: 0;
+.reference-app .reference-brand .novi-word {
+  display: block;
   color: #ffffff;
-  font-size: 3.65rem;
-  font-weight: 540;
-  line-height: 0.9;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.32em;
 }
 
-.reference-app .reference-brand p {
-  margin: 10px 0 0;
-  color: #b49cf4;
-  font-size: 0.72rem;
-  text-transform: uppercase;
+.reference-app .reference-brand .novi-mark {
+  width: 28px;
+  height: 24px;
 }
 
 .project-stats {
@@ -2086,7 +2082,7 @@ kbd {
     min-height: 0;
     align-items: flex-start;
     justify-content: space-between;
-    padding: 38px 42px 0;
+    padding: 18px 20px 0;
     pointer-events: none;
   }
 
@@ -2541,23 +2537,7 @@ kbd {
   }
 
   .reference-app .novi-header {
-    padding-inline: 26px;
-  }
-
-  .reference-app .reference-brand {
-    gap: 38px;
-  }
-
-  .reference-app .reference-brand .novi-lockup {
-    transform: scale(1.3);
-  }
-
-  .reference-app .reference-brand h1 {
-    font-size: 3rem;
-  }
-
-  .reference-app .reference-brand p {
-    font-size: 0.6rem;
+    padding-inline: 18px;
   }
 
   .reference-app .world-grid {
@@ -2625,14 +2605,6 @@ kbd {
     min-height: 150px;
   }
 
-  .reference-app .reference-brand .novi-lockup {
-    transform: scale(1.25);
-  }
-
-  .reference-app .reference-brand h1 {
-    font-size: 2.8rem;
-  }
-
   .reference-app .world-grid {
     grid-template-columns: minmax(0, 1fr) 300px;
   }
@@ -2669,25 +2641,11 @@ kbd {
   }
 
   .reference-app .reference-header {
-    min-height: 132px;
-    padding: 18px 4px 14px;
-  }
-
-  .reference-app .reference-brand {
-    gap: 25px;
-  }
-
-  .reference-app .reference-brand .novi-lockup {
-    transform: scale(0.9);
-  }
-
-  .reference-app .reference-brand h1 {
-    font-size: 2rem;
-  }
-
-  .reference-app .reference-brand p {
-    margin-top: 6px;
-    font-size: 0.56rem;
+    display: flex;
+    min-height: 76px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
   }
 
   .reference-app .command-button {
